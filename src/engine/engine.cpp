@@ -11,12 +11,15 @@
 // #INCLUDE //
 //////////////
 
-   // Main include:
-   #include "engine.h"
-   
-   // C/C++:
-   #include <iostream>   
-   #include <source_location>
+// Main include:
+#include "engine.h"
+
+// C/C++:
+#include <iostream>   
+#include <source_location>
+
+// GLM
+#include <glm/glm.hpp>
 
 
 
@@ -97,6 +100,8 @@ bool ENG_API Eng::Base::init()
    }
 
    // Here you can initialize most of the graphics engine's dependencies and default settings...
+   glm::vec3 position(1.0f, 2.0f, 3.0f);
+   std::cout << position.x << "," << position.y << "," << position.z << std::endl;
    
    // Done:
    std::cout << "[>] " << LIB_NAME << " initialized" << std::endl;
