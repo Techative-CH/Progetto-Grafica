@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1781514445 source:/home/samuel/Documenti/GitHub/Progetto-Grafica/src/client/main.cpp
+	"engine.h"
+	<iostream>
+
+1781514445 /home/samuel/Documenti/GitHub/Progetto-Grafica/src/engine/engine.h
+	<memory>
+

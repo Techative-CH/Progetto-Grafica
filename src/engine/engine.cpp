@@ -15,7 +15,7 @@
 #include "engine.h"
 
 // C/C++:
-#include <iostream>   
+#include <iostream>
 #include <source_location>
 
 // GLM
@@ -34,12 +34,12 @@ struct Eng::Base::Reserved
 {
    // Flags:
    bool initFlag;
-   
+
 
    /**
     * Constructor.
     */
-   Reserved() : initFlag{ false } 
+   Reserved() : initFlag{ false }
    {}
 };
 
@@ -54,8 +54,8 @@ struct Eng::Base::Reserved
  * Constructor.
  */
 ENG_API Eng::Base::Base() : reserved(std::make_unique<Eng::Base::Reserved>())
-{  
-#ifdef _DEBUG   
+{
+#ifdef _DEBUG
    std::cout << "[+] " << std::source_location::current().function_name() << " invoked" << std::endl;
 #endif
 }
@@ -87,7 +87,7 @@ Eng::Base ENG_API &Eng::Base::getInstance()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * Init internal components. 
+ * Init internal components.
  * @return TF
  */
 bool ENG_API Eng::Base::init()
@@ -100,9 +100,7 @@ bool ENG_API Eng::Base::init()
    }
 
    // Here you can initialize most of the graphics engine's dependencies and default settings...
-   glm::vec3 position(1.0f, 2.0f, 3.0f);
-   std::cout << position.x << "," << position.y << "," << position.z << std::endl;
-   
+
    // Done:
    std::cout << "[>] " << LIB_NAME << " initialized" << std::endl;
    reserved->initFlag = true;

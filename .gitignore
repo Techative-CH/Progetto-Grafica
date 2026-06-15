@@ -2,3 +2,6 @@
 *.user
 .vs
 x64/
+bin/
+obj/
+*.layout
