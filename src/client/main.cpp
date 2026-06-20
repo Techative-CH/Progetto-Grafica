@@ -11,11 +11,14 @@
 // #INCLUDE //
 //////////////
 
-   // Library header:
-   #include "engine.h"
+// Library header:
+#include "engine.h"
 
-   // C/C++:
-   #include <iostream>
+// C/C++:
+#include <iostream>
+
+// Hanoi Game
+#include "HanoiGame.h"
 
 
 
@@ -29,20 +32,36 @@
  * @param argv array containing up to argc passed arguments
  * @return error code (0 on success, error code otherwise)
  */
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-   // Credits:
-   std::cout << "Client application example, S. Banfi (C) SUPSI" << std::endl;
-   std::cout << std::endl;
+	// Credits:
+	std::cout << "Client - Tower of Hanoi, S. Banfi (C) SUPSI" << std::endl;
+	std::cout << std::endl;
 
-   // Init engine:
-   Eng::Base &eng = Eng::Base::getInstance();
-   eng.init();
+	// Init engine:
+	Eng::Base& eng = Eng::Base::getInstance();
+	eng.init();
 
-   // Release engine:
-   eng.free();
+	// Create game:
+	HanoiGame game;
 
-   // Done:
-   std::cout << "\n[application terminated]" << std::endl;
-   return 0;
+	std::cout << "Before init:" << std::endl;
+	game.printState();
+
+	game.init();
+
+	std::cout << "\nAfter init:" << std::endl;
+	game.printState();
+
+	game.reset();
+
+	std::cout << "\nAfter reset:" << std::endl;
+	game.printState();
+
+	// Release engine:
+	eng.free();
+
+	// Done:
+	std::cout << "\n[application terminated]" << std::endl;
+	return 0;
 }
