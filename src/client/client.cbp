@@ -42,6 +42,8 @@
 		<Linker>
 			<Add library="engine" />
 		</Linker>
+		<Unit filename="HanoiGame.cpp" />
+		<Unit filename="HanoiGame.h" />
 		<Unit filename="main.cpp" />
 		<Extensions />
 	</Project>
