@@ -11,6 +11,29 @@ void HanoiGame::init()
     reset();
 }
 
+bool HanoiGame::isMoveValid(int from, int to) const
+{
+    if (from < 0 || from >= NUM_RODS)
+        return false;
+
+    if (to < 0 || to >= NUM_RODS)
+        return false;
+
+    if (from == to)
+        return false;
+
+    if (rods[from].empty())
+        return false;
+
+    if (rods[to].empty())
+        return true;
+
+    int lastFrom = rods[from].back();
+    int lastTo = rods[to].back();
+
+    return lastFrom < lastTo;
+}
+
 void HanoiGame::reset() 
 {
     for (int i = 0; i < NUM_RODS; i++) 

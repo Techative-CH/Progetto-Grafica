@@ -18,7 +18,7 @@
 #include <iostream>
 
 // Hanoi Game
-#include "HanoiGame.h"
+#include "hanoiGame.h"
 
 
 
