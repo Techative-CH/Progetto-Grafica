@@ -21,6 +21,9 @@
     <ClCompile Include="HanoiGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="move.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HanoiGame.h">

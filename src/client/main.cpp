@@ -53,6 +53,27 @@ int main(int argc, char* argv[])
 	std::cout << "\nAfter init:" << std::endl;
 	game.printState();
 
+	std::cout << "\nMove 0 -> 1: " << game.moveDisk(0, 1) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove 0 -> 1 again (should be invalid): " << game.moveDisk(0, 1) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove 0 -> 2: " << game.moveDisk(0, 2) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove 1 -> 2: " << game.moveDisk(1, 2) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove from empty rod 1 -> 0 (should be invalid): " << game.moveDisk(1, 0) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove same rod 0 -> 0 (should be invalid): " << game.moveDisk(0, 0) << std::endl;
+	game.printState();
+
+	std::cout << "\nMove invalid rod -1 -> 2 (should be invalid): " << game.moveDisk(-1, 2) << std::endl;
+	game.printState();
+
 	game.reset();
 
 	std::cout << "\nAfter reset:" << std::endl;

@@ -28,10 +28,23 @@ bool HanoiGame::isMoveValid(int from, int to) const
     if (rods[to].empty())
         return true;
 
-    int lastFrom = rods[from].back();
-    int lastTo = rods[to].back();
+    int lastDiskFrom = rods[from].back();
+    int lastDiskTo = rods[to].back();
 
-    return lastFrom < lastTo;
+    return lastDiskFrom < lastDiskTo;
+}
+
+bool HanoiGame::moveDisk(int from, int to)
+{
+    if (!isMoveValid(from, to))
+        return false;
+
+    int disk = rods[from].back();
+    rods[from].pop_back();
+
+    rods[to].push_back(disk);
+
+    return true;
 }
 
 void HanoiGame::reset() 

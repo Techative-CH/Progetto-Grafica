@@ -15,8 +15,8 @@ private:
 public:
     void init();
 
-    bool moveDisk(int from, int to);
     bool isMoveValid(int from, int to) const;
+    bool moveDisk(int from, int to);
 
     void undo();
     void redo();
@@ -26,4 +26,3 @@ public:
 
     void printState() const;
 };
-
