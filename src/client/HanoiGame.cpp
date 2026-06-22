@@ -41,10 +41,42 @@ bool HanoiGame::moveDisk(int from, int to)
 
     int disk = rods[from].back();
     rods[from].pop_back();
-
     rods[to].push_back(disk);
 
+    Move move{ from, to, disk };
+    undoStack.push_back(move);
+
+    redoStack.clear();
+
     return true;
+}
+
+void HanoiGame::undo()
+{
+    if (undoStack.empty())
+        return;
+
+    Move move = undoStack.back();
+    undoStack.pop_back();
+
+    rods[move.to].pop_back();
+    rods[move.from].push_back(move.disk);
+
+    redoStack.push_back(move);
+}
+
+void HanoiGame::redo()
+{
+    if (redoStack.empty())
+        return;
+
+    Move move = redoStack.back();
+    redoStack.pop_back();
+
+    rods[move.from].pop_back();
+    rods[move.to].push_back(move.disk);
+
+    undoStack.push_back(move);
 }
 
 void HanoiGame::reset() 
@@ -58,6 +90,9 @@ void HanoiGame::reset()
     {
         rods[0].push_back(i);
     }
+
+    undoStack.clear();
+    redoStack.clear();
 }
 
 bool HanoiGame::isSolved() const

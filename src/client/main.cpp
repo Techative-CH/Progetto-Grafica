@@ -42,24 +42,31 @@ int main(int argc, char* argv[])
 	Eng::Base& eng = Eng::Base::getInstance();
 	eng.init();
 
-	// Create game:
 	HanoiGame game;
-
 	game.init();
 
-	std::cout << "\nInitial state:" << std::endl;
+	std::cout << "\nStart:" << std::endl;
 	game.printState();
-	std::cout << "Solved: " << game.isSolved() << std::endl;
 
-	// Basic move tests
-	std::cout << "\nMove 0 -> 1: " << game.moveDisk(0, 1) << std::endl;
-	std::cout << "Move 0 -> 1 again (invalid): " << game.moveDisk(0, 1) << std::endl;
-	std::cout << "Move from empty rod 2 -> 0: " << game.moveDisk(2, 0) << std::endl;
-	std::cout << "Move same rod 0 -> 0: " << game.moveDisk(0, 0) << std::endl;
-	std::cout << "Move invalid rod -1 -> 2: " << game.moveDisk(-1, 2) << std::endl;
-	std::cout << "Solved: " << game.isSolved() << std::endl;
+	// Some manual move checks
+	std::cout << "Move 0 -> 1: " << game.moveDisk(0, 1) << std::endl;
+	std::cout << "Move 0 -> 1: " << game.moveDisk(0, 1) << " (should fail)" << std::endl;
+	std::cout << "Move 2 -> 0: " << game.moveDisk(2, 0) << " (empty rod)" << std::endl;
+	std::cout << "Move 0 -> 0: " << game.moveDisk(0, 0) << " (same rod)" << std::endl;
 
-	// Solve puzzle to rod 2
+	std::cout << "\nAfter some moves:" << std::endl;
+	game.printState();
+
+	// Undo / redo check
+	std::cout << "Undo last valid move" << std::endl;
+	game.undo();
+	game.printState();
+
+	std::cout << "Redo last move" << std::endl;
+	game.redo();
+	game.printState();
+
+	// Solve the puzzle on rod 2
 	game.reset();
 
 	game.moveDisk(0, 2);
@@ -70,11 +77,11 @@ int main(int argc, char* argv[])
 	game.moveDisk(1, 2);
 	game.moveDisk(0, 2);
 
-	std::cout << "\nFinal state:" << std::endl;
+	std::cout << "\nSolved state:" << std::endl;
 	game.printState();
 	std::cout << "Solved: " << game.isSolved() << std::endl;
 
-	// Reset test
+	// Reset check
 	game.reset();
 
 	std::cout << "\nAfter reset:" << std::endl;

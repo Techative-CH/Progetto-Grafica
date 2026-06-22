@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "move.h"
 
 class HanoiGame
 {
@@ -9,6 +10,8 @@ private:
     static const int NUM_DISKS = 3;
 
     std::vector<int> rods[NUM_RODS];
+    std::vector<Move> undoStack;
+    std::vector<Move> redoStack;
 
     bool initialized = false;
 
