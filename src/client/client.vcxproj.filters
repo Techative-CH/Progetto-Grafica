@@ -26,7 +26,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HanoiGame.h">
+    <ClInclude Include="hanoiGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

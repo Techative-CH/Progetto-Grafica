@@ -85,7 +85,7 @@
     <ClCompile Include="move.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HanoiGame.h" />
+    <ClInclude Include="hanoiGame.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

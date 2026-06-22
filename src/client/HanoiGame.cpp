@@ -60,6 +60,17 @@ void HanoiGame::reset()
     }
 }
 
+bool HanoiGame::isSolved() const
+{
+    for (int i = 1; i < NUM_RODS; i++)
+    {
+        if (rods[i].size() == NUM_DISKS)
+            return true;
+    }
+
+    return false;
+}
+
 void HanoiGame::printState() const
 {
     for (int i = 0; i < NUM_RODS; i++)

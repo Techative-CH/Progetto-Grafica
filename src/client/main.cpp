@@ -34,55 +34,56 @@
  */
 int main(int argc, char* argv[])
 {
-	// Credits:
+	// Credits
 	std::cout << "Client - Tower of Hanoi, S. Banfi (C) SUPSI" << std::endl;
 	std::cout << std::endl;
 
-	// Init engine:
+	// Init engine
 	Eng::Base& eng = Eng::Base::getInstance();
 	eng.init();
 
 	// Create game:
 	HanoiGame game;
 
-	std::cout << "Before init:" << std::endl;
-	game.printState();
-
 	game.init();
 
-	std::cout << "\nAfter init:" << std::endl;
+	std::cout << "\nInitial state:" << std::endl;
 	game.printState();
+	std::cout << "Solved: " << game.isSolved() << std::endl;
 
+	// Basic move tests
 	std::cout << "\nMove 0 -> 1: " << game.moveDisk(0, 1) << std::endl;
-	game.printState();
+	std::cout << "Move 0 -> 1 again (invalid): " << game.moveDisk(0, 1) << std::endl;
+	std::cout << "Move from empty rod 2 -> 0: " << game.moveDisk(2, 0) << std::endl;
+	std::cout << "Move same rod 0 -> 0: " << game.moveDisk(0, 0) << std::endl;
+	std::cout << "Move invalid rod -1 -> 2: " << game.moveDisk(-1, 2) << std::endl;
+	std::cout << "Solved: " << game.isSolved() << std::endl;
 
-	std::cout << "\nMove 0 -> 1 again (should be invalid): " << game.moveDisk(0, 1) << std::endl;
-	game.printState();
+	// Solve puzzle to rod 2
+	game.reset();
 
-	std::cout << "\nMove 0 -> 2: " << game.moveDisk(0, 2) << std::endl;
-	game.printState();
+	game.moveDisk(0, 2);
+	game.moveDisk(0, 1);
+	game.moveDisk(2, 1);
+	game.moveDisk(0, 2);
+	game.moveDisk(1, 0);
+	game.moveDisk(1, 2);
+	game.moveDisk(0, 2);
 
-	std::cout << "\nMove 1 -> 2: " << game.moveDisk(1, 2) << std::endl;
+	std::cout << "\nFinal state:" << std::endl;
 	game.printState();
+	std::cout << "Solved: " << game.isSolved() << std::endl;
 
-	std::cout << "\nMove from empty rod 1 -> 0 (should be invalid): " << game.moveDisk(1, 0) << std::endl;
-	game.printState();
-
-	std::cout << "\nMove same rod 0 -> 0 (should be invalid): " << game.moveDisk(0, 0) << std::endl;
-	game.printState();
-
-	std::cout << "\nMove invalid rod -1 -> 2 (should be invalid): " << game.moveDisk(-1, 2) << std::endl;
-	game.printState();
-
+	// Reset test
 	game.reset();
 
 	std::cout << "\nAfter reset:" << std::endl;
 	game.printState();
+	std::cout << "Solved: " << game.isSolved() << std::endl;
 
-	// Release engine:
+	// Release engine
 	eng.free();
 
-	// Done:
 	std::cout << "\n[application terminated]" << std::endl;
 	return 0;
 }
