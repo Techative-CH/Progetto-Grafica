@@ -1,7 +1,7 @@
-#include "HanoiGame.h"
+#include "hanoiGame.h"
 #include <iostream>
 
-void HanoiGame::init() 
+void HanoiGame::init()
 {
     if (initialized)
         return;
@@ -79,14 +79,14 @@ void HanoiGame::redo()
     undoStack.push_back(move);
 }
 
-void HanoiGame::reset() 
+void HanoiGame::reset()
 {
-    for (int i = 0; i < NUM_RODS; i++) 
+    for (int i = 0; i < NUM_RODS; i++)
     {
         rods[i].clear();
     }
 
-    for (int i = NUM_DISKS; i >= 1; i--) 
+    for (int i = NUM_DISKS; i >= 1; i--)
     {
         rods[0].push_back(i);
     }
