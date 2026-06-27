@@ -93,16 +93,19 @@ public: //
    void clearWindow();
    void swapBuffers();
    void setBackgroundColor(float r, float g, float b, float a = 1.0f);
-   bool isRunning() const;
+   void setViewport(int x, int y, int width, int height);
 
    // Callbacks:
    void setDisplayCallback(void (*callback)());
+   void setReshapeCallback(void (*callback)(int width, int height));
    void setKeyboardCallback(void (*callback)(unsigned char key, int mouseX, int mouseY));
    void setSpecialCallback(void (*callback)(int key, int mouseX, int mouseY));
+   void setTimerCallback(unsigned int millis, void (*callback)(int value), int value = 0);
 
    // Main loop:
    void mainLoop();
    void postRedisplay();
+   bool isRunning() const;
 
 
 ///////////

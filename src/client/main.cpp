@@ -25,10 +25,38 @@ void displayCallback()
 	Eng::Base& eng = Eng::Base::getInstance();
 
 	eng.clearWindow();
-
-	// For now we draw nothing.
-
 	eng.swapBuffers();
+}
+
+void reshapeCallback(int width, int height)
+{
+	Eng::Base& eng = Eng::Base::getInstance();
+
+	eng.setViewport(0, 0, width, height);
+	std::cout << "Window resized: " << width << "x" << height << std::endl;
+}
+
+void keyboardCallback(unsigned char key, int mouseX, int mouseY)
+{
+	std::cout << "Key pressed: " << key << std::endl;
+
+	if (key == 27) // ESC
+		std::cout << "ESC pressed" << std::endl;
+}
+
+void specialCallback(int key, int mouseX, int mouseY)
+{
+	std::cout << "Special key pressed: " << key << std::endl;
+}
+
+void timerCallback(int value)
+{
+	std::cout << "Timer callback" << std::endl;
+
+	Eng::Base& eng = Eng::Base::getInstance();
+	eng.postRedisplay();
+
+	eng.setTimerCallback(3000, timerCallback, 0);
 }
 
 
@@ -118,8 +146,13 @@ int main(int argc, char* argv[])
 	Eng::Base& eng = Eng::Base::getInstance();
 
 	eng.init("Tower of Hanoi", 640, 480);
-	eng.setBackgroundColor(0.2f, 0.2f, 0.7f);
+	
+	// Callbacks
 	eng.setDisplayCallback(displayCallback);
+	eng.setReshapeCallback(reshapeCallback);
+	eng.setKeyboardCallback(keyboardCallback);
+	eng.setSpecialCallback(specialCallback);
+	eng.setTimerCallback(3000, timerCallback, 0);
 
 	std::cout << "Engine started correctly" << std::endl;
 

@@ -26,8 +26,10 @@
 
 // Callbacks
 static void (*userDisplayCallback)() = nullptr;
+static void (*userReshapeCallback)(int, int) = nullptr;
 static void (*userKeyboardCallback)(unsigned char, int, int) = nullptr;
 static void (*userSpecialCallback)(int, int, int) = nullptr;
+static void (*userTimerCallback)(int) = nullptr;
 
 static void displayCallbackBridge()
 {
@@ -45,6 +47,18 @@ static void specialCallbackBridge(int key, int x, int y)
 {
     if (userSpecialCallback)
         userSpecialCallback(key, x, y);
+}
+
+static void reshapeCallbackBridge(int width, int height)
+{
+    if (userReshapeCallback)
+        userReshapeCallback(width, height);
+}
+
+static void timerCallbackBridge(int value)
+{
+    if (userTimerCallback)
+        userTimerCallback(value);
 }
 
 
@@ -170,6 +184,11 @@ bool ENG_API Eng::Base::free()
    return true;
 }
 
+bool ENG_API Eng::Base::isRunning() const
+{
+    return reserved->running;
+}
+
 void ENG_API Eng::Base::clearWindow()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -185,9 +204,9 @@ void ENG_API Eng::Base::setBackgroundColor(float r, float g, float b, float a)
     glClearColor(r, g, b, a);
 }
 
-bool ENG_API Eng::Base::isRunning() const
+void ENG_API Eng::Base::setViewport(int x, int y, int width, int height)
 {
-    return reserved->running;
+    glViewport(x, y, width, height);
 }
 
 void ENG_API Eng::Base::mainLoop()
@@ -206,6 +225,12 @@ void ENG_API Eng::Base::setDisplayCallback(void (*callback)())
     glutDisplayFunc(displayCallbackBridge);
 }
 
+void ENG_API Eng::Base::setReshapeCallback(void (*callback)(int, int))
+{
+    userReshapeCallback = callback;
+    glutReshapeFunc(reshapeCallbackBridge);
+}
+
 void ENG_API Eng::Base::setKeyboardCallback(void (*callback)(unsigned char, int, int))
 {
     userKeyboardCallback = callback;
@@ -216,4 +241,10 @@ void ENG_API Eng::Base::setSpecialCallback(void (*callback)(int, int, int))
 {
     userSpecialCallback = callback;
     glutSpecialFunc(specialCallbackBridge);
+}
+
+void ENG_API Eng::Base::setTimerCallback(unsigned int millis, void (*callback)(int), int value)
+{
+    userTimerCallback = callback;
+    glutTimerFunc(millis, timerCallbackBridge, value);
 }
