@@ -12,8 +12,8 @@
 // #INCLUDE //
 //////////////
 
-   // C/C++:         
-   #include <memory> 
+// C/C++:         
+#include <memory> 
 
 
 
@@ -21,7 +21,7 @@
 // VERSION //
 /////////////
 
-   // Generic info:
+// Generic info:
 #ifdef _DEBUG
    #define LIB_NAME      "My Graphics Engine v0.1a (debug)"   ///< Library credits
 #else
@@ -29,7 +29,7 @@
 #endif
    #define LIB_VERSION   10                           ///< Library version (divide by 10)
 
-   // Export API:
+// Export API:
 #ifdef _WINDOWS
    // Specifies i/o linkage (VC++ spec):
    #ifdef ENGINE_EXPORTS
@@ -58,7 +58,7 @@ namespace Eng {
 // #INCLUDE //
 //////////////   
 
-   // You can subinclude here other headers of your engine...
+// You can subinclude here other headers of your engine...
 
 
 
@@ -86,8 +86,23 @@ public: //
    static Base &getInstance();
 
    // Init/free:
-   bool init();
-   bool free();   
+   bool init(const char* windowTitle, int width, int height);
+   bool free();
+
+   // Rendering:
+   void clearWindow();
+   void swapBuffers();
+   void setBackgroundColor(float r, float g, float b, float a = 1.0f);
+   bool isRunning() const;
+
+   // Callbacks:
+   void setDisplayCallback(void (*callback)());
+   void setKeyboardCallback(void (*callback)(unsigned char key, int mouseX, int mouseY));
+   void setSpecialCallback(void (*callback)(int key, int mouseX, int mouseY));
+
+   // Main loop:
+   void mainLoop();
+   void postRedisplay();
 
 
 ///////////

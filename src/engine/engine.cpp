@@ -1,5 +1,5 @@
 /**
- * @file		engine.cpp
+ * @file    engine.cpp
  * @brief	Graphics engine main file
  *
  * @author	Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
@@ -21,6 +21,31 @@
 // GLM
 #include <glm/glm.hpp>
 
+// FreeGLUT
+#include <GL/freeglut.h>
+
+// Callbacks
+static void (*userDisplayCallback)() = nullptr;
+static void (*userKeyboardCallback)(unsigned char, int, int) = nullptr;
+static void (*userSpecialCallback)(int, int, int) = nullptr;
+
+static void displayCallbackBridge()
+{
+    if (userDisplayCallback)
+        userDisplayCallback();
+}
+
+static void keyboardCallbackBridge(unsigned char key, int x, int y)
+{
+    if (userKeyboardCallback)
+        userKeyboardCallback(key, x, y);
+}
+
+static void specialCallbackBridge(int key, int x, int y)
+{
+    if (userSpecialCallback)
+        userSpecialCallback(key, x, y);
+}
 
 
 /////////////////////////
@@ -34,12 +59,17 @@ struct Eng::Base::Reserved
 {
    // Flags:
    bool initFlag;
+   bool running;
+   int windowId;
 
 
    /**
     * Constructor.
     */
-   Reserved() : initFlag{ false }
+   Reserved() : 
+       initFlag { false },
+       running { false },
+       windowId { 0 }
    {}
 };
 
@@ -90,21 +120,29 @@ Eng::Base ENG_API &Eng::Base::getInstance()
  * Init internal components.
  * @return TF
  */
-bool ENG_API Eng::Base::init()
+bool ENG_API Eng::Base::init(const char* windowTitle, int width, int height)
 {
-   // Already initialized?
-   if (reserved->initFlag)
-   {
-      std::cout << "ERROR: engine already initialized" << std::endl;
-      return false;
-   }
+    if (reserved->initFlag)
+        return false;
 
-   // Here you can initialize most of the graphics engine's dependencies and default settings...
+    int argc = 1;
+    char* argv[1] = { (char*)"engine" };
 
-   // Done:
-   std::cout << "[>] " << LIB_NAME << " initialized" << std::endl;
-   reserved->initFlag = true;
-   return true;
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(width, height);
+    glutInitWindowPosition(100, 100);
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+
+    reserved->windowId = glutCreateWindow(windowTitle);
+
+    glEnable(GL_DEPTH_TEST);
+
+    reserved->initFlag = true;
+    reserved->running = true;
+
+    std::cout << "[>] " << LIB_NAME << " initialized" << std::endl;
+    return true;
 }
 
 
@@ -127,5 +165,55 @@ bool ENG_API Eng::Base::free()
    // Done:
    std::cout << "[<] " << LIB_NAME << " deinitialized" << std::endl;
    reserved->initFlag = false;
+   reserved->running = false;
+
    return true;
+}
+
+void ENG_API Eng::Base::clearWindow()
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void ENG_API Eng::Base::swapBuffers()
+{
+    glutSwapBuffers();
+}
+
+void ENG_API Eng::Base::setBackgroundColor(float r, float g, float b, float a)
+{
+    glClearColor(r, g, b, a);
+}
+
+bool ENG_API Eng::Base::isRunning() const
+{
+    return reserved->running;
+}
+
+void ENG_API Eng::Base::mainLoop()
+{
+    glutMainLoop();
+}
+
+void ENG_API Eng::Base::postRedisplay()
+{
+    glutPostRedisplay();
+}
+
+void ENG_API Eng::Base::setDisplayCallback(void (*callback)())
+{
+    userDisplayCallback = callback;
+    glutDisplayFunc(displayCallbackBridge);
+}
+
+void ENG_API Eng::Base::setKeyboardCallback(void (*callback)(unsigned char, int, int))
+{
+    userKeyboardCallback = callback;
+    glutKeyboardFunc(keyboardCallbackBridge);
+}
+
+void ENG_API Eng::Base::setSpecialCallback(void (*callback)(int, int, int))
+{
+    userSpecialCallback = callback;
+    glutSpecialFunc(specialCallbackBridge);
 }

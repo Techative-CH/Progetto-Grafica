@@ -20,6 +20,16 @@
 // Hanoi Game
 #include "hanoiGame.h"
 
+void displayCallback()
+{
+	Eng::Base& eng = Eng::Base::getInstance();
+
+	eng.clearWindow();
+
+	// For now we draw nothing.
+
+	eng.swapBuffers();
+}
 
 
 //////////
@@ -34,13 +44,21 @@
  */
 int main(int argc, char* argv[])
 {
-	// Credits
+	/*// Credits
 	std::cout << "Client - Tower of Hanoi, S. Banfi (C) SUPSI" << std::endl;
 	std::cout << std::endl;
 
 	// Init engine
 	Eng::Base& eng = Eng::Base::getInstance();
-	eng.init();
+
+	eng.init("Tower of Hanoi", 640, 480);
+	eng.setDisplayCallback(displayCallback);
+	eng.setKeyboardCallback(keyboardCallback);
+	eng.setSpecialCallback(specialCallback);
+
+	eng.mainLoop();
+
+	eng.free();
 
 	HanoiGame game;
 	game.init();
@@ -89,6 +107,24 @@ int main(int argc, char* argv[])
 	std::cout << "Solved: " << game.isSolved() << std::endl;
 
 	// Release engine
+	eng.free();
+
+	std::cout << "\n[application terminated]" << std::endl;
+	return 0;*/
+
+	std::cout << "Client - Tower of Hanoi, S. Banfi (C) SUPSI" << std::endl;
+	std::cout << std::endl;
+
+	Eng::Base& eng = Eng::Base::getInstance();
+
+	eng.init("Tower of Hanoi", 640, 480);
+	eng.setBackgroundColor(0.2f, 0.2f, 0.7f);
+	eng.setDisplayCallback(displayCallback);
+
+	std::cout << "Engine started correctly" << std::endl;
+
+	eng.mainLoop();
+
 	eng.free();
 
 	std::cout << "\n[application terminated]" << std::endl;
