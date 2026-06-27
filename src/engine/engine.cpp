@@ -23,6 +23,8 @@
 
 // FreeGLUT
 #include <GL/freeglut.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // Callbacks
 static void (*userDisplayCallback)() = nullptr;
@@ -209,6 +211,19 @@ void ENG_API Eng::Base::setViewport(int x, int y, int width, int height)
     glViewport(x, y, width, height);
 }
 
+void ENG_API Eng::Base::setPerspective(float fov, float aspectRatio, float nearPlane, float farPlane)
+{
+    glMatrixMode(GL_PROJECTION);
+    glm::mat4 projection = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
+    glLoadMatrixf(glm::value_ptr(projection));
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void ENG_API Eng::Base::loadIdentity()
+{
+    glLoadIdentity();
+}
+
 void ENG_API Eng::Base::mainLoop()
 {
     glutMainLoop();
@@ -247,4 +262,86 @@ void ENG_API Eng::Base::setTimerCallback(unsigned int millis, void (*callback)(i
 {
     userTimerCallback = callback;
     glutTimerFunc(millis, timerCallbackBridge, value);
+}
+
+void ENG_API Eng::Base::translate(float x, float y, float z)
+{
+    glm::mat4 matrix = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+    glMultMatrixf(glm::value_ptr(matrix));
+}
+
+void ENG_API Eng::Base::rotate(float angle, float x, float y, float z)
+{
+    glm::mat4 matrix = glm::rotate(
+        glm::mat4(1.0f),
+        glm::radians(angle),
+        glm::vec3(x, y, z)
+    );
+
+    glMultMatrixf(glm::value_ptr(matrix));
+}
+
+void ENG_API Eng::Base::scale(float x, float y, float z)
+{
+    glm::mat4 matrix = glm::scale(glm::mat4(1.0f), glm::vec3(x, y, z));
+    glMultMatrixf(glm::value_ptr(matrix));
+}
+
+void ENG_API Eng::Base::drawCube(float edge)
+{
+    float size = edge / 2.0f;
+
+    // Back
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(255, 0, 0);
+    glVertex3f(size, -size, -size);
+    glVertex3f(-size, -size, -size);
+    glVertex3f(size, size, -size);
+    glVertex3f(-size, size, -size);
+    glEnd();
+
+    // Front
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(0, 255, 0);
+    glVertex3f(-size, -size, size);
+    glVertex3f(size, -size, size);
+    glVertex3f(-size, size, size);
+    glVertex3f(size, size, size);
+    glEnd();
+
+    // Left
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(0, 0, 255);
+    glVertex3f(-size, size, -size);
+    glVertex3f(-size, -size, -size);
+    glVertex3f(-size, size, size);
+    glVertex3f(-size, -size, size);
+    glEnd();
+
+    // Right
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(255, 255, 0);
+    glVertex3f(size, -size, -size);
+    glVertex3f(size, size, -size);
+    glVertex3f(size, -size, size);
+    glVertex3f(size, size, size);
+    glEnd();
+
+    // Bottom
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(255, 0, 255);
+    glVertex3f(-size, -size, -size);
+    glVertex3f(size, -size, -size);
+    glVertex3f(-size, -size, size);
+    glVertex3f(size, -size, size);
+    glEnd();
+
+    // Top
+    glBegin(GL_TRIANGLE_STRIP);
+    glColor3ub(0, 255, 255);
+    glVertex3f(size, size, -size);
+    glVertex3f(-size, size, -size);
+    glVertex3f(size, size, size);
+    glVertex3f(-size, size, size);
+    glEnd();
 }

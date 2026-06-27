@@ -94,6 +94,8 @@ public: //
    void swapBuffers();
    void setBackgroundColor(float r, float g, float b, float a = 1.0f);
    void setViewport(int x, int y, int width, int height);
+   void setPerspective(float fov, float aspect, float nearPlane, float farPlane);
+   void loadIdentity();
 
    // Callbacks:
    void setDisplayCallback(void (*callback)());
@@ -106,6 +108,14 @@ public: //
    void mainLoop();
    void postRedisplay();
    bool isRunning() const;
+
+   // Transformations:
+   void translate(float x, float y, float z);
+   void rotate(float angle, float x, float y, float z);
+   void scale(float x, float y, float z);
+
+   // Primitives:
+   void drawCube(float edge);
 
 
 ///////////

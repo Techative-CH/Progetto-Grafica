@@ -25,6 +25,15 @@ void displayCallback()
 	Eng::Base& eng = Eng::Base::getInstance();
 
 	eng.clearWindow();
+
+	eng.loadIdentity();
+
+	eng.translate(0.0f, 0.0f, -45.0f);
+	eng.rotate(30.0f, 1.0f, 0.0f, 0.0f);
+	eng.rotate(30.0f, 0.0f, 1.0f, 0.0f);
+
+	eng.drawCube(20.0f);
+
 	eng.swapBuffers();
 }
 
@@ -33,7 +42,7 @@ void reshapeCallback(int width, int height)
 	Eng::Base& eng = Eng::Base::getInstance();
 
 	eng.setViewport(0, 0, width, height);
-	std::cout << "Window resized: " << width << "x" << height << std::endl;
+	eng.setPerspective(45.0f, (float)width / (float)height, 1.0f, 100.0f);
 }
 
 void keyboardCallback(unsigned char key, int mouseX, int mouseY)
