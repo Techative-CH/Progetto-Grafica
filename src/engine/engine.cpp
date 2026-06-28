@@ -20,11 +20,11 @@
 
 // GLM
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // FreeGLUT
 #include <GL/freeglut.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 // Callbacks
 static void (*userDisplayCallback)() = nullptr;

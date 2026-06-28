@@ -1,7 +1,9 @@
 .DS_Store
 *.user
 .vs
-x64/
+src/x64/
+**/client/x64/
+**/engine/x64
 bin/
 obj/
 *.layout
