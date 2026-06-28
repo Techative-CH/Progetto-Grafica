@@ -45,6 +45,7 @@
 		<Unit filename="hanoiGame.cpp" />
 		<Unit filename="hanoiGame.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="move.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
