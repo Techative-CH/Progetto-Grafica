@@ -1,10 +1,11 @@
 #pragma once
 
+#include "engineApi.h"
 #include "node.h"
 
 namespace Eng
 {
-	class Camera : public Node
+	class ENG_API Camera : public Node
 	{
 	public:
 		Camera(const std::string& name);

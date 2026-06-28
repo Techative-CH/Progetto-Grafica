@@ -1,9 +1,11 @@
 #pragma once
+
+#include "engineApi.h"
 #include <string>
 
 namespace Eng
 {
-	class Object
+	class ENG_API Object
 	{
 	public:
 		Object(const std::string& name);

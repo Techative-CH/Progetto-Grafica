@@ -1,12 +1,14 @@
 #pragma once
 
+#include "engineApi.h"
 #include "object.h"
 #include <vector>
+#include <string>
 
 #include <glm/glm.hpp>
 
 namespace Eng {
-	class Node : public Object
+	class ENG_API Node : public Object
 	{
 	public:
 		Node(const std::string& name);

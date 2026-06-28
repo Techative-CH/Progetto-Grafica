@@ -13,6 +13,7 @@
 
 // Main include:
 #include "engine.h"
+#include "node.h"
 
 // C/C++:
 #include <iostream>
@@ -344,4 +345,22 @@ void ENG_API Eng::Base::drawCube(float edge)
     glVertex3f(size, size, size);
     glVertex3f(-size, size, size);
     glEnd();
+}
+
+void ENG_API Eng::Base::render(Eng::Node* node)
+{
+    if (node == nullptr)
+        return;
+
+    glPushMatrix();
+
+    glm::mat4 localMatrix = node->getLocalMatrix();
+    glMultMatrixf(glm::value_ptr(localMatrix));
+
+    node->render();
+
+    for (Eng::Node* child : node->getChildren())
+        render(child);
+
+    glPopMatrix();
 }

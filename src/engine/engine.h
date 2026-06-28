@@ -15,6 +15,8 @@
 // C/C++:         
 #include <memory> 
 
+#include "engineApi.h"
+
 
 
 /////////////
@@ -29,20 +31,10 @@
 #endif
    #define LIB_VERSION   10                           ///< Library version (divide by 10)
 
-// Export API:
-#ifdef _WINDOWS
-   // Specifies i/o linkage (VC++ spec):
-   #ifdef ENGINE_EXPORTS
-      #define ENG_API __declspec(dllexport)
-   #else
-      #define ENG_API __declspec(dllimport)
-   #endif      
-
-   // Get rid of annoying warnings:
-   #pragma warning(disable : 4251) 
-#else // Under linux
-   #define ENG_API
-#endif
+#include "object.h"
+#include "node.h"
+#include "mesh.h"
+#include "camera.h"
 
 
 
@@ -59,8 +51,6 @@ namespace Eng {
 //////////////   
 
 // You can subinclude here other headers of your engine...
-
-
 
 ///////////////////////
 // MAIN ENGINE CLASS //
@@ -117,6 +107,8 @@ public: //
    // Primitives:
    void drawCube(float edge);
 
+   // Rendering:
+   void render(Node* node);
 
 ///////////
 private: //
