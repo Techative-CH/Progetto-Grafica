@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "engine.h"
 
 Eng::Camera::Camera(const std::string& name) : 
 	Node{ name },
@@ -10,3 +11,13 @@ Eng::Camera::Camera(const std::string& name) :
 
 Eng::Camera::~Camera()
 {}
+
+void Eng::Camera::setPerspective(float fov, float aspectRatio, float nearPlane, float farPlane)
+{
+	this->fov = fov;
+	this->aspectRatio = aspectRatio;
+	this->nearPlane = nearPlane;
+	this->farPlane = farPlane;
+
+	Eng::Base::getInstance().setPerspective(fov, aspectRatio, nearPlane, farPlane);
+}
