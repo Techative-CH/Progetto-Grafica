@@ -22,6 +22,8 @@
 
 Eng::Node* root = nullptr;
 Eng::Texture* checkerboard = nullptr;
+int currentFilter = 0;
+bool repeatWrapping = true;
 float angle = 0.0f;
 
 void displayCallback()
@@ -34,7 +36,7 @@ void displayCallback()
 	if (checkerboard != nullptr)
 		checkerboard->bind();
 
-	eng.translate(0.0f, 0.0f, -45.0f);
+	eng.translate(0.0f, 0.0f, -85.0f);
 	eng.rotate(angle, 0.0f, 1.0f, 0.0f);
 	eng.drawCube(20.0f);
 
@@ -54,10 +56,66 @@ void reshapeCallback(int width, int height)
 
 void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 {
-	std::cout << "Key pressed: " << key << std::endl;
-
-	if (key == 27) // ESC
+	switch (key)
+	{
+	case 27:
 		exit(0);
+		break;
+
+	case 'f':
+		if (checkerboard == nullptr)
+			break;
+
+		currentFilter = (currentFilter + 1) % 5;
+
+		switch (currentFilter)
+		{
+		case 0:
+			checkerboard->setFilter(Eng::TextureFilter::NEAREST);
+			std::cout << "Nearest" << std::endl;
+			break;
+
+		case 1:
+			checkerboard->setFilter(Eng::TextureFilter::LINEAR);
+			std::cout << "Linear" << std::endl;
+			break;
+
+		case 2:
+			checkerboard->setFilter(Eng::TextureFilter::NEAREST_MIPMAP);
+			std::cout << "Nearest mipmap" << std::endl;
+			break;
+
+		case 3:
+			checkerboard->setFilter(Eng::TextureFilter::BILINEAR_MIPMAP);
+			std::cout << "Bilinear mipmap" << std::endl;
+			break;
+
+		case 4:
+			checkerboard->setFilter(Eng::TextureFilter::TRILINEAR);
+			std::cout << "Trilinear" << std::endl;
+			break;
+		}
+		
+		break;
+
+	case 'w':
+		if (checkerboard == nullptr)
+			break;
+
+		repeatWrapping = !repeatWrapping;
+
+		if (repeatWrapping) 
+		{
+			checkerboard->setWrap(Eng::TextureWrap::REPEAT);
+		}
+		else {
+			checkerboard->setWrap(Eng::TextureWrap::CLAMP);
+		}
+
+		break;
+	}
+
+	Eng::Base::getInstance().postRedisplay();
 }
 
 void specialCallback(int key, int mouseX, int mouseY)
@@ -67,7 +125,7 @@ void specialCallback(int key, int mouseX, int mouseY)
 
 void timerCallback(int value)
 {
-	angle += 1.0f;
+	angle += 0.2f;
 
 	if (root != nullptr && !root->getChildren().empty())
 		root->getChildren()[0]->setRotation(angle, 0.0f, 1.0f, 0.0f);

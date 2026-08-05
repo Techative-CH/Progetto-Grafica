@@ -8,7 +8,9 @@ Eng::Texture::Texture(const std::string& name)
 	: Object{ name },
 	textureId{ 0 },
 	width{ 0 },
-	height{ 0 }
+	height{ 0 },
+	filter{ TextureFilter::NEAREST },
+	wrap{ TextureWrap::REPEAT }
 {}
 
 Eng::Texture::~Texture()
@@ -20,21 +22,17 @@ Eng::Texture::~Texture()
 	}
 }
 
-bool Eng::Texture::createCheckerboard(int width, int height)
+std::vector<unsigned char> Eng::Texture::buildCheckerboardBitmap(
+	int width,
+	int height,
+	int tileSize
+) const
 {
-	if (width <= 0 || height <= 0)
-		return false;
-
-	this->width = width;
-	this->height = height;
-
 	const int channels = 3;
 
 	std::vector<unsigned char> bitmap(
 		width * height * channels
 	);
-
-	const int tileSize = 32;
 
 	for (int y = 0; y < height; y++)
 	{
@@ -53,52 +51,66 @@ bool Eng::Texture::createCheckerboard(int width, int height)
 		}
 	}
 
+	return bitmap;
+}
+
+bool Eng::Texture::createCheckerboard(int width, int height)
+{
+	if (width <= 0 || height <= 0)
+		return false;
+
+	this->width = width;
+	this->height = height;
+
 	if (textureId == 0)
 		glGenTextures(1, &textureId); // Generate OpenGL id
-
-	glBindTexture(GL_TEXTURE_2D, textureId); // Bind texture
+ 
+	bind(); // Bind texture
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // 1 - Doesn't use padding (we use RGB)
 
-	// Configure wrap and filters
-	glTexParameteri(
-		GL_TEXTURE_2D,
-		GL_TEXTURE_WRAP_S,
-		GL_REPEAT
-	);
+	// Configure wrap and apply filters
+	this->applyParameters();
 
-	glTexParameteri(
-		GL_TEXTURE_2D,
-		GL_TEXTURE_WRAP_T,
-		GL_REPEAT
-	);
+	int currentWidth = width;
+	int currentHeight = height;
+	int currentLevel = 0;
+	int currentTileSize = 32;
 
-	glTexParameteri(
-		GL_TEXTURE_2D,
-		GL_TEXTURE_MIN_FILTER,
-		GL_NEAREST
-	);
+	while (currentWidth > 0 && currentHeight > 0)
+	{
+		int tileSize = currentTileSize;
 
-	glTexParameteri(
-		GL_TEXTURE_2D,
-		GL_TEXTURE_MAG_FILTER,
-		GL_NEAREST
-	);
+		if (tileSize < 1)
+			tileSize = 1;
 
-	// Transfer bitmap to OpenGL (RAM -> GPU)
-	glTexImage2D(
-		GL_TEXTURE_2D,
-		0,
-		GL_RGB,
-		width,
-		height,
-		0,
-		GL_RGB,
-		GL_UNSIGNED_BYTE,
-		bitmap.data() // Pointer to first element in vector
-	);
+		std::vector<unsigned char> bitmap =
+			buildCheckerboardBitmap(
+				currentWidth,
+				currentHeight,
+				tileSize
+			);
 
-	glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture
+		// Transfer bitmap to OpenGL (RAM -> GPU)
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			currentLevel,
+			GL_RGB,
+			currentWidth,
+			currentHeight,
+			0,
+			GL_RGB,
+			GL_UNSIGNED_BYTE,
+			bitmap.data() // Pointer to first element in vector
+		);
+
+		currentWidth /= 2;
+		currentHeight /= 2;
+		currentTileSize /= 2;
+		currentLevel++;
+	}
+
+	unbind(); // unbind texture
 
 	return true;
 }
@@ -111,4 +123,75 @@ void Eng::Texture::bind() const
 void Eng::Texture::unbind() const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+/**
+ * Configure wrap and apply filters.
+ */
+void Eng::Texture::applyParameters() const
+{
+	switch (wrap)
+	{
+	case TextureWrap::REPEAT:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		break;
+
+	case TextureWrap::CLAMP:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		break;
+	}
+
+	switch (filter)
+	{
+	case TextureFilter::NEAREST:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		break;
+
+	case TextureFilter::LINEAR:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		break;
+
+	case TextureFilter::NEAREST_MIPMAP:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		break;
+
+	case TextureFilter::BILINEAR_MIPMAP:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		break;
+
+	case TextureFilter::TRILINEAR:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		break;
+	}
+}
+
+void Eng::Texture::setFilter(TextureFilter filter)
+{
+	this->filter = filter;
+
+	if (textureId == 0)
+		return;
+
+	bind();
+	applyParameters();
+	unbind();
+}
+
+void Eng::Texture::setWrap(TextureWrap wrap)
+{
+	this->wrap = wrap;
+
+	if (textureId == 0)
+		return;
+
+	bind();
+	applyParameters();
+	unbind();
 }

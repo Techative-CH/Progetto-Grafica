@@ -297,16 +297,16 @@ void ENG_API Eng::Base::drawCube(float edge)
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(255, 0, 0);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(size, -size, -size);
 
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(size, size, -size);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(-size, size, -size);
 
     glEnd();
@@ -318,13 +318,13 @@ void ENG_API Eng::Base::drawCube(float edge)
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, size);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(size, -size, size);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(-size, size, size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(size, size, size);
 
     glEnd();
@@ -333,16 +333,16 @@ void ENG_API Eng::Base::drawCube(float edge)
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(0, 0, 255);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(-size, size, -size);
 
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(-size, size, size);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(-size, -size, size);
 
     glEnd();
@@ -354,13 +354,13 @@ void ENG_API Eng::Base::drawCube(float edge)
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(size, -size, -size);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(size, size, -size);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(size, -size, size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(size, size, size);
 
     glEnd();
@@ -372,13 +372,13 @@ void ENG_API Eng::Base::drawCube(float edge)
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(size, -size, -size);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(-size, -size, size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(size, -size, size);
 
     glEnd();
@@ -387,16 +387,16 @@ void ENG_API Eng::Base::drawCube(float edge)
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(0, 255, 255);
 
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(4.0f, 0.0f);
     glVertex3f(size, size, -size);
 
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, size, -size);
 
-    glTexCoord2f(1.0f, 1.0f);
+    glTexCoord2f(4.0f, 4.0f);
     glVertex3f(size, size, size);
 
-    glTexCoord2f(0.0f, 1.0f);
+    glTexCoord2f(0.0f, 4.0f);
     glVertex3f(-size, size, size);
 
     glEnd();
