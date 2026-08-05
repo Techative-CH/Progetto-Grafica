@@ -34,15 +34,8 @@ void displayCallback()
 	eng.clearWindow();
 	eng.loadIdentity();
 
-	if (checkerboard != nullptr)
-		checkerboard->bind();
-
-	eng.translate(0.0f, 0.0f, -85.0f);
-	eng.rotate(angle, 0.0f, 1.0f, 0.0f);
-	eng.drawCube(20.0f);
-
-	if (checkerboard != nullptr)
-		checkerboard->unbind();
+	if (root != nullptr)
+		eng.render(root);
 
 	eng.swapBuffers();
 }
@@ -224,6 +217,10 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "Unable to create texture" << std::endl;
 	}
+
+	cube1->setTexture(checkerboard);
+	cube2->setTexture(checkerboard);
+	cube3->setTexture(checkerboard);
 
 	std::cout << "Engine started correctly" << std::endl;
 
