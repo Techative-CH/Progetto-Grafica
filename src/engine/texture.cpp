@@ -10,7 +10,9 @@ Eng::Texture::Texture(const std::string& name)
 	width{ 0 },
 	height{ 0 },
 	filter{ TextureFilter::NEAREST },
-	wrap{ TextureWrap::REPEAT }
+	wrap{ TextureWrap::REPEAT },
+	anisotropy{ 1.0f }, // Disabled
+	maxAnisotropy{ 1.0f }
 {}
 
 Eng::Texture::~Texture()
@@ -69,6 +71,14 @@ bool Eng::Texture::createCheckerboard(int width, int height)
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // 1 - Doesn't use padding (we use RGB)
 
+	glGetFloatv(
+		GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+		&maxAnisotropy
+	);
+
+	if (maxAnisotropy < 1.0f)
+		maxAnisotropy = 1.0f;
+
 	// Configure wrap and apply filters
 	this->applyParameters();
 
@@ -125,6 +135,40 @@ void Eng::Texture::unbind() const
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Eng::Texture::setAnisotropy(float value)
+{
+	if (value < 1.0f)
+		value = 1.0f;
+
+	if (value > maxAnisotropy)
+		value = maxAnisotropy;
+
+	anisotropy = value;
+
+	if (textureId == 0)
+		return;
+
+	bind();
+
+	glTexParameterf(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_MAX_ANISOTROPY_EXT,
+		anisotropy
+	);
+
+	unbind();
+}
+
+float Eng::Texture::getAnisotropy() const
+{
+	return anisotropy;
+}
+
+float Eng::Texture::getMaxAnisotropy() const
+{
+	return maxAnisotropy;
+}
+
 /**
  * Configure wrap and apply filters.
  */
@@ -170,6 +214,12 @@ void Eng::Texture::applyParameters() const
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		break;
 	}
+
+	glTexParameterf(
+		GL_TEXTURE_2D,
+		GL_TEXTURE_MAX_ANISOTROPY_EXT,
+		anisotropy
+	);
 }
 
 void Eng::Texture::setFilter(TextureFilter filter)

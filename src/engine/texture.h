@@ -6,6 +6,14 @@
 #include <string>
 #include <vector>
 
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 namespace Eng 
 {
 	enum class TextureFilter
@@ -34,6 +42,10 @@ namespace Eng
 		void setFilter(TextureFilter filter);
 		void setWrap(TextureWrap wrap);
 
+		float getAnisotropy() const;
+		float getMaxAnisotropy() const;
+		void setAnisotropy(float value);
+
 		void bind() const;
 		void unbind() const;
 
@@ -42,7 +54,17 @@ namespace Eng
 		int width;
 		int height;
 
+		float anisotropy;
+		float maxAnisotropy;
+
 		TextureFilter filter;
 		TextureWrap wrap;
+
+		std::vector<unsigned char> buildCheckerboardBitmap(
+			int width,
+			int height,
+			int tileSize
+		) const;
+		void applyParameters() const;
 	};
 }

@@ -23,6 +23,7 @@
 Eng::Node* root = nullptr;
 Eng::Texture* checkerboard = nullptr;
 int currentFilter = 0;
+bool anisotropicFiltering = false;
 bool repeatWrapping = true;
 float angle = 0.0f;
 
@@ -110,6 +111,39 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 		}
 		else {
 			checkerboard->setWrap(Eng::TextureWrap::CLAMP);
+		}
+
+		break;
+
+	case 'a':
+		if (checkerboard == nullptr)
+			break;
+
+		anisotropicFiltering = !anisotropicFiltering;
+
+		if (anisotropicFiltering)
+		{
+			checkerboard->setFilter(
+				Eng::TextureFilter::TRILINEAR
+			);
+
+			checkerboard->setAnisotropy(
+				checkerboard->getMaxAnisotropy()
+			);
+
+			std::cout
+				<< "Anisotropic filtering: "
+				<< checkerboard->getAnisotropy()
+				<< "x"
+				<< std::endl;
+		}
+		else
+		{
+			checkerboard->setAnisotropy(1.0f);
+
+			std::cout
+				<< "Anisotropic filtering disabled"
+				<< std::endl;
 		}
 
 		break;
