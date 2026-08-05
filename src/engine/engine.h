@@ -35,6 +35,7 @@
 #include "node.h"
 #include "mesh.h"
 #include "camera.h"
+#include "texture.h"
 
 
 

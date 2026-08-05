@@ -21,6 +21,7 @@
 #include "hanoiGame.h"
 
 Eng::Node* root = nullptr;
+Eng::Texture* checkerboard = nullptr;
 float angle = 0.0f;
 
 void displayCallback()
@@ -30,8 +31,15 @@ void displayCallback()
 	eng.clearWindow();
 	eng.loadIdentity();
 
-	if (root != nullptr)
-		eng.render(root);
+	if (checkerboard != nullptr)
+		checkerboard->bind();
+
+	eng.translate(0.0f, 0.0f, -45.0f);
+	eng.rotate(angle, 0.0f, 1.0f, 0.0f);
+	eng.drawCube(20.0f);
+
+	if (checkerboard != nullptr)
+		checkerboard->unbind();
 
 	eng.swapBuffers();
 }
@@ -118,12 +126,22 @@ int main(int argc, char* argv[])
 	eng.setSpecialCallback(specialCallback);
 	eng.setTimerCallback(16, timerCallback, 0);
 
+	checkerboard = new Eng::Texture("checkerboard");
+
+	if (!checkerboard->createCheckerboard(256, 256))
+	{
+		std::cout << "Unable to create texture" << std::endl;
+	}
+
 	std::cout << "Engine started correctly" << std::endl;
 
 	eng.mainLoop();
 
 	delete root;
 	root = nullptr;
+
+	delete checkerboard;
+	checkerboard = nullptr;
 
 	eng.free();
 

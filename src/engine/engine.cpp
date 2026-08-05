@@ -154,6 +154,7 @@ bool ENG_API Eng::Base::init(const char* windowTitle, int width, int height)
     reserved->windowId = glutCreateWindow(windowTitle);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
 
     reserved->initFlag = true;
     reserved->running = true;
@@ -295,55 +296,109 @@ void ENG_API Eng::Base::drawCube(float edge)
     // Back
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(255, 0, 0);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(size, -size, -size);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(size, size, -size);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-size, size, -size);
+
     glEnd();
 
     // Front
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(0, 255, 0);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, size);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(size, -size, size);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-size, size, size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(size, size, size);
+
     glEnd();
 
     // Left
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(0, 0, 255);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-size, size, -size);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(-size, size, size);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(-size, -size, size);
+
     glEnd();
 
     // Right
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(255, 255, 0);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(size, -size, -size);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(size, size, -size);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(size, -size, size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(size, size, size);
+
     glEnd();
 
     // Bottom
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(255, 0, 255);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, -size, -size);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(size, -size, -size);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-size, -size, size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(size, -size, size);
+
     glEnd();
 
     // Top
     glBegin(GL_TRIANGLE_STRIP);
     glColor3ub(0, 255, 255);
+
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(size, size, -size);
+
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-size, size, -size);
+
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(size, size, size);
+
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-size, size, size);
+
     glEnd();
 }
 
