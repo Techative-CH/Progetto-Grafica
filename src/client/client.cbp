@@ -38,6 +38,7 @@
 			<Add option="-std=c++20" />
 			<Add option="-fexceptions" />
 			<Add directory="../engine" />
+			<Add directory="../dependencies/glm/include" />
 		</Compiler>
 		<Linker>
 			<Add library="engine" />

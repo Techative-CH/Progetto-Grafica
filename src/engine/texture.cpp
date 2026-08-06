@@ -9,10 +9,10 @@ Eng::Texture::Texture(const std::string& name)
 	textureId{ 0 },
 	width{ 0 },
 	height{ 0 },
-	filter{ TextureFilter::NEAREST },
-	wrap{ TextureWrap::REPEAT },
 	anisotropy{ 1.0f }, // Disabled
-	maxAnisotropy{ 1.0f }
+	maxAnisotropy{ 1.0f },
+	filter{ TextureFilter::NEAREST },
+	wrap{ TextureWrap::REPEAT }
 {}
 
 Eng::Texture::~Texture()
@@ -66,7 +66,7 @@ bool Eng::Texture::createCheckerboard(int width, int height)
 
 	if (textureId == 0)
 		glGenTextures(1, &textureId); // Generate OpenGL id
- 
+
 	bind(); // Bind texture
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // 1 - Doesn't use padding (we use RGB)
