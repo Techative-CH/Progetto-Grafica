@@ -22,6 +22,8 @@
 
 Eng::Node* root = nullptr;
 Eng::Texture* checkerboard = nullptr;
+Eng::Material* checkerMaterial = nullptr;
+
 int currentFilter = 0;
 bool anisotropicFiltering = false;
 bool repeatWrapping = true;
@@ -218,9 +220,12 @@ int main(int argc, char* argv[])
 		std::cout << "Unable to create texture" << std::endl;
 	}
 
-	cube1->setTexture(checkerboard);
-	cube2->setTexture(checkerboard);
-	cube3->setTexture(checkerboard);
+	checkerMaterial = new Eng::Material("checkerMaterial");
+	checkerMaterial->setTexture(checkerboard);
+
+	cube1->setMaterial(checkerMaterial);
+	cube2->setMaterial(checkerMaterial);
+	cube3->setMaterial(checkerMaterial);
 
 	std::cout << "Engine started correctly" << std::endl;
 
@@ -228,6 +233,9 @@ int main(int argc, char* argv[])
 
 	delete root;
 	root = nullptr;
+
+	delete checkerMaterial;
+	checkerMaterial = nullptr;
 
 	delete checkerboard;
 	checkerboard = nullptr;

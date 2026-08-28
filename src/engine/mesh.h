@@ -2,7 +2,6 @@
 
 #include "engineApi.h"
 #include "node.h"
-#include "texture.h"
 
 namespace Eng
 {
@@ -14,13 +13,13 @@ namespace Eng
 
 		void setCubeEdge(float edge);
 
-		void setTexture(Texture* texture);
-		Texture* getTexture() const;
+		void setMaterial(Material* material);
+		Material* getMaterial() const;
 
 		void render() override;
 
 	private:
 		float cubeEdge;
-		Texture* texture;
+		Material* material;
 	};
 }

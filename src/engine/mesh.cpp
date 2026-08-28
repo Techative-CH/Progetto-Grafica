@@ -4,7 +4,7 @@
 Eng::Mesh::Mesh(const std::string& name) : 
 	Node{ name },
 	cubeEdge{ 1.0f },
-	texture{ nullptr }
+	material{ nullptr }
 {}
 
 Eng::Mesh::~Mesh()
@@ -15,18 +15,23 @@ void Eng::Mesh::setCubeEdge(float edge)
 	cubeEdge = edge;
 }
 
-void Eng::Mesh::setTexture(Texture* texture)
+void Eng::Mesh::setMaterial(Material* material)
 {
-	this->texture = texture;
+	this->material = material;
 }
 
-Eng::Texture* Eng::Mesh::getTexture() const
+Eng::Material* Eng::Mesh::getMaterial() const
 {
-	return texture;
+	return material;
 }
 
 void Eng::Mesh::render()
 {
+	Texture* texture = nullptr;
+
+	if (material != nullptr)
+		texture = material->getTexture();
+
 	if (texture != nullptr)
 		texture->bind();
 
