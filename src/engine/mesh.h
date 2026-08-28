@@ -2,6 +2,7 @@
 
 #include "engineApi.h"
 #include "node.h"
+#include "material.h"
 
 namespace Eng
 {
