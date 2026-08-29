@@ -38,6 +38,7 @@
 #include "texture.h"
 #include "light.h"
 #include "material.h"
+#include "list.h"
 
 
 ///////////////
