@@ -27,16 +27,11 @@ Eng::Material* Eng::Mesh::getMaterial() const
 
 void Eng::Mesh::render()
 {
-	Texture* texture = nullptr;
-
 	if (material != nullptr)
-		texture = material->getTexture();
-
-	if (texture != nullptr)
-		texture->bind();
+		material->render();
 
 	Eng::Base::getInstance().drawCube(cubeEdge);
 
-	if (texture != nullptr)
-		texture->unbind();
+	if (material != nullptr)
+		material->unbind();
 }

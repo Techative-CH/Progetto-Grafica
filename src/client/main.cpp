@@ -237,6 +237,11 @@ int main(int argc, char* argv[])
 
 	checkerMaterial = new Eng::Material("checkerMaterial");
 	checkerMaterial->setTexture(checkerboard);
+	checkerMaterial->setAmbient(0.05f, 0.05f, 0.05f);
+	checkerMaterial->setDiffuse(0.7f, 0.7f, 0.7f);
+	checkerMaterial->setSpecular(1.0f, 1.0f, 1.0f);
+	checkerMaterial->setShininess(64.0f);
+	checkerMaterial->setEmission(0.0f, 0.0f, 0.0f);
 
 	cube1->setMaterial(checkerMaterial);
 	cube2->setMaterial(checkerMaterial);
