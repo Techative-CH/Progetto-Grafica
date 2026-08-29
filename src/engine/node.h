@@ -20,10 +20,7 @@ namespace Eng {
 
 		Node* getParent() const;
 
-		void setPosition(float x, float y, float z);
-		void setRotation(float angle, float x, float y, float z);
-		void setScale(float x, float y, float z);
-
+		void setLocalMatrix(const glm::mat4& matrix);
 		glm::mat4 getLocalMatrix() const;
 		glm::mat4 getWorldMatrix() const;
 
@@ -32,10 +29,6 @@ namespace Eng {
 	private:
 		Node* parent;
 		std::vector<Node*> children;
-
-		glm::vec3 position;
-		glm::vec3 rotationAxis;
-		float rotationAngle;
-		glm::vec3 scale;
+		glm::mat4 localMatrix;
 	};
 }

@@ -13,6 +13,8 @@
 
 // Library header:
 #include "engine.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 // C/C++:
 #include <iostream>
@@ -22,6 +24,7 @@
 
 Eng::Node* root = nullptr;
 Eng::List* renderList = nullptr;
+Eng::Mesh* cube1 = nullptr;
 Eng::Texture* checkerboard = nullptr;
 Eng::Material* checkerMaterial = nullptr;
 
@@ -160,10 +163,26 @@ void timerCallback(int value)
 {
 	angle += 0.2f;
 
-	if (root != nullptr && !root->getChildren().empty())
-		root->getChildren()[0]->setRotation(angle, 0.0f, 1.0f, 0.0f);
+	if (cube1 != nullptr)
+	{
+		glm::mat4 matrix{ 1.0f };
+
+		matrix = glm::translate(
+			matrix,
+			glm::vec3(0.0f, 0.0f, -45.0f)
+		);
+
+		matrix = glm::rotate(
+			matrix,
+			glm::radians(angle),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		);
+
+		cube1->setLocalMatrix(matrix);
+	}
 
 	Eng::Base& eng = Eng::Base::getInstance();
+
 	eng.postRedisplay();
 	eng.setTimerCallback(16, timerCallback, 0);
 }
@@ -192,22 +211,58 @@ int main(int argc, char* argv[])
 
 	root = new Eng::Node("root");
 
-	Eng::Mesh* cube1 = new Eng::Mesh("cube1");
-	cube1->setPosition(0.0f, 0.0f, -45.0f);
+	cube1 = new Eng::Mesh("cube1");
+	glm::mat4 cube1Matrix{ 1.0f };
+
+	cube1Matrix = glm::translate(
+		cube1Matrix,
+		glm::vec3(0.0f, 0.0f, -45.0f)
+	);
+
+	cube1->setLocalMatrix(cube1Matrix);
 	cube1->setCubeEdge(20.0f);
 
 	Eng::Mesh* cube2 = new Eng::Mesh("cube2");
-	cube2->setPosition(18.0f, 0.0f, 0.0f);
-	cube2->setScale(0.6f, 0.6f, 0.6f);
+	glm::mat4 cube2Matrix{ 1.0f };
+
+	cube2Matrix = glm::translate(
+		cube2Matrix,
+		glm::vec3(18.0f, 0.0f, 0.0f)
+	);
+
+	cube2Matrix = glm::scale(
+		cube2Matrix,
+		glm::vec3(0.6f)
+	);
+
+	cube2->setLocalMatrix(cube2Matrix);
 	cube2->setCubeEdge(20.0f);
 
 	Eng::Mesh* cube3 = new Eng::Mesh("cube3");
-	cube3->setPosition(18.0f, 0.0f, 0.0f);
-	cube3->setScale(0.6f, 0.6f, 0.6f);
+	glm::mat4 cube3Matrix{ 1.0f };
+
+	cube3Matrix = glm::translate(
+		cube3Matrix,
+		glm::vec3(18.0f, 0.0f, 0.0f)
+	);
+
+	cube3Matrix = glm::scale(
+		cube3Matrix,
+		glm::vec3(0.6f)
+	);
+
+	cube3->setLocalMatrix(cube3Matrix);
 	cube3->setCubeEdge(20.0f);
 
 	Eng::Light* light = new Eng::Light("light");
-	light->setPosition(0.0f, 20.0f, -20.0f);
+	glm::mat4 lightMatrix{ 1.0f };
+
+	lightMatrix = glm::translate(
+		lightMatrix,
+		glm::vec3(0.0f, 20.0f, -20.0f)
+	);
+
+	light->setLocalMatrix(lightMatrix);
 	light->setColor(1.0f, 1.0f, 1.0f);
 
 	root->addChild(cube1);
