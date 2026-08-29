@@ -155,6 +155,13 @@ bool ENG_API Eng::Base::init(const char* windowTitle, int width, int height)
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_NORMALIZE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glColorMaterial(
+        GL_FRONT_AND_BACK,
+        GL_AMBIENT_AND_DIFFUSE
+    );
 
     reserved->initFlag = true;
     reserved->running = true;
@@ -295,6 +302,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Back
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards -Z
+    glNormal3f(0.0f, 0.0f, -1.0f);
+
     glColor3ub(255, 0, 0);
 
     glTexCoord2f(4.0f, 0.0f);
@@ -313,6 +324,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Front
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards +Z
+    glNormal3f(0.0f, 0.0f, 1.0f);
+
     glColor3ub(0, 255, 0);
 
     glTexCoord2f(0.0f, 0.0f);
@@ -331,6 +346,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Left
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards -X
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+
     glColor3ub(0, 0, 255);
 
     glTexCoord2f(0.0f, 4.0f);
@@ -349,6 +368,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Right
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards +X
+    glNormal3f(1.0f, 0.0f, 0.0f);
+
     glColor3ub(255, 255, 0);
 
     glTexCoord2f(0.0f, 0.0f);
@@ -367,6 +390,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Bottom
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards -Y
+    glNormal3f(0.0f, -1.0f, 0.0f);
+
     glColor3ub(255, 0, 255);
 
     glTexCoord2f(0.0f, 0.0f);
@@ -385,6 +412,10 @@ void ENG_API Eng::Base::drawCube(float edge)
 
     // Top
     glBegin(GL_TRIANGLE_STRIP);
+
+    // Normal points towards +Y
+    glNormal3f(0.0f, 1.0f, 0.0f);
+
     glColor3ub(0, 255, 255);
 
     glTexCoord2f(4.0f, 0.0f);
@@ -433,6 +464,11 @@ void ENG_API Eng::Base::render(Eng::List* list)
     if (list == nullptr)
         return;
 
+    GLint maxLights = 0;
+    glGetIntegerv(GL_MAX_LIGHTS, &maxLights);
+
+    GLint lightIndex = 0;
+
     for (const RenderElement& element : list->getElements())
     {
         if (element.node == nullptr)
@@ -444,8 +480,51 @@ void ENG_API Eng::Base::render(Eng::List* list)
             glm::value_ptr(element.worldMatrix)
         );
 
-        element.node->render();
+        Light* light = dynamic_cast<Light*>(element.node);
+
+        if (light != nullptr)
+        {
+            if (lightIndex < maxLights)
+            {
+                GLenum lightId = GL_LIGHT0 + lightIndex;
+
+                glEnable(lightId);
+
+                const glm::vec3& color = light->getColor();
+
+                GLfloat diffuse[] =
+                {
+                    color.r,
+                    color.g,
+                    color.b,
+                    1.0f
+                };
+
+                glLightfv(lightId, GL_DIFFUSE, diffuse);
+
+                GLfloat position[] =
+                {
+                    0.0f,
+                    0.0f,
+                    0.0f,
+                    1.0f
+                };
+
+                glLightfv(lightId, GL_POSITION, position);
+
+                ++lightIndex;
+            }
+        }
+        else
+        {
+            element.node->render();
+        }
 
         glPopMatrix();
     }
+
+    if (lightIndex > 0)
+        glEnable(GL_LIGHTING);
+    else
+        glDisable(GL_LIGHTING);
 }
