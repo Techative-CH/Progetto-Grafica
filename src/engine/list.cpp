@@ -4,7 +4,7 @@
 #include "light.h"
 
 Eng::List::List(const std::string& name)
-	: Object{ name }
+    : Object{ name }
 {
 }
 
@@ -12,49 +12,44 @@ Eng::List::~List()
 {
 }
 
-void Eng::List::add(Node* node, const glm::mat4& worldMatrix)
-{
-	if (node != nullptr)
-		elements.push_back({ node, worldMatrix });
-}
-
 void Eng::List::clear()
 {
-	elements.clear();
+    elements.clear();
 }
 
-std::size_t Eng::List::size() const
+const std::list<Eng::RenderElement>& Eng::List::getElements() const
 {
-	return elements.size();
-}
-
-const Eng::RenderElement* Eng::List::get(std::size_t index) const
-{
-	if (index >= elements.size())
-		return nullptr;
-
-	return &elements[index];
+    return elements;
 }
 
 void Eng::List::pass(Node* root)
 {
-	clear();
+    clear();
 
-	if (root != nullptr)
-		passRecursive(root);
+    if (root != nullptr)
+        passRecursive(root);
 }
 
 void Eng::List::passRecursive(Node* node)
 {
-	if (node == nullptr)
-		return;
+    if (node == nullptr)
+        return;
 
-	if (dynamic_cast<Mesh*>(node) != nullptr ||
-		dynamic_cast<Light*>(node) != nullptr)
-	{
-		add(node, node->getWorldMatrix());
-	}
+    if (dynamic_cast<Light*>(node) != nullptr)
+    {
+        elements.push_front({
+            node,
+            node->getWorldMatrix()
+        });
+    }
+    else if (dynamic_cast<Mesh*>(node) != nullptr)
+    {
+        elements.push_back({
+            node,
+            node->getWorldMatrix()
+        });
+    }
 
-	for (Node* child : node->getChildren())
-		passRecursive(child);
+    for (Node* child : node->getChildren())
+        passRecursive(child);
 }

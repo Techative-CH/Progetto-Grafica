@@ -433,20 +433,18 @@ void ENG_API Eng::Base::render(Eng::List* list)
     if (list == nullptr)
         return;
 
-    for (std::size_t i = 0; i < list->size(); ++i)
+    for (const RenderElement& element : list->getElements())
     {
-        const RenderElement* element = list->get(i);
-
-        if (element == nullptr || element->node == nullptr)
+        if (element.node == nullptr)
             continue;
 
         glPushMatrix();
 
         glMultMatrixf(
-            glm::value_ptr(element->worldMatrix)
+            glm::value_ptr(element.worldMatrix)
         );
 
-        element->node->render();
+        element.node->render();
 
         glPopMatrix();
     }

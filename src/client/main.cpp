@@ -206,14 +206,19 @@ int main(int argc, char* argv[])
 	cube3->setScale(0.6f, 0.6f, 0.6f);
 	cube3->setCubeEdge(20.0f);
 
+	Eng::Light* light = new Eng::Light("light");
+	light->setPosition(0.0f, 10.0f, -20.0f);
+	light->setColor(1.0f, 1.0f, 1.0f);
+
 	root->addChild(cube1);
 	cube1->addChild(cube2);
 	cube2->addChild(cube3);
+	root->addChild(light);
 
 	renderList = eng.buildList(root);
 
 	std::cout << "Render elements: "
-		<< renderList->size()
+		<< renderList->getElements().size()
 		<< std::endl;
 	
 	// Callbacks

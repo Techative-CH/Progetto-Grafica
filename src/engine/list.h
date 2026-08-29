@@ -4,35 +4,31 @@
 #include "object.h"
 #include "node.h"
 
-#include <vector>
-
+#include <list>
 #include <glm/glm.hpp>
 
 namespace Eng
 {
-	struct RenderElement
-	{
-		Node* node;
-		glm::mat4 worldMatrix;
-	};
+    struct RenderElement
+    {
+        Node* node;
+        glm::mat4 worldMatrix;
+    };
 
-	class ENG_API List : public Object
-	{
-	public:
-		List(const std::string& name);
-		virtual ~List();
+    class ENG_API List : public Object
+    {
+    public:
+        List(const std::string& name);
+        virtual ~List();
 
-		void add(Node* node, const glm::mat4& worldMatrix);
-		void clear();
+        void clear();
+        void pass(Node* root);
 
-		std::size_t size() const;
-		const RenderElement* get(std::size_t index) const;
+        const std::list<RenderElement>& getElements() const;
 
-		void pass(Node* root);
+    private:
+        std::list<RenderElement> elements;
 
-	private:
-		std::vector<RenderElement> elements;
-
-		void passRecursive(Node* node);
-	};
+        void passRecursive(Node* node);
+    };
 }
