@@ -111,6 +111,7 @@ public: //
    void drawCube(float edge);
 
    // Rendering:
+   List* buildList(Node* root);
    void render(Node* node);
 
 ///////////
@@ -123,6 +124,8 @@ private: //
 
    // Const/dest:
    Base();
+
+   void buildListRecursive(Node* node, List* list);
 };
 
 }; // end of namespace Eng::
