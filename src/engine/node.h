@@ -2,6 +2,7 @@
 
 #include "engineApi.h"
 #include "object.h"
+
 #include <vector>
 #include <string>
 
@@ -17,16 +18,21 @@ namespace Eng {
 		void addChild(Node* child);
 		const std::vector<Node*>& getChildren() const;
 
+		Node* getParent() const;
+
 		void setPosition(float x, float y, float z);
 		void setRotation(float angle, float x, float y, float z);
 		void setScale(float x, float y, float z);
 
 		glm::mat4 getLocalMatrix() const;
+		glm::mat4 getWorldMatrix() const;
 
 		virtual void render();
 
 	private:
+		Node* parent;
 		std::vector<Node*> children;
+
 		glm::vec3 position;
 		glm::vec3 rotationAxis;
 		float rotationAngle;

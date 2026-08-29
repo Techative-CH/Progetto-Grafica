@@ -6,21 +6,33 @@
 
 #include <vector>
 
+#include <glm/glm.hpp>
+
 namespace Eng
 {
+	struct RenderElement
+	{
+		Node* node;
+		glm::mat4 worldMatrix;
+	};
+
 	class ENG_API List : public Object
 	{
 	public:
 		List(const std::string& name);
 		virtual ~List();
 
-		void add(Node* node);
+		void add(Node* node, const glm::mat4& worldMatrix);
 		void clear();
 
 		std::size_t size() const;
-		Node* get(std::size_t index) const;
+		const RenderElement* get(std::size_t index) const;
+
+		void pass(Node* root);
 
 	private:
-		std::vector<Node*> nodes;
+		std::vector<RenderElement> elements;
+
+		void passRecursive(Node* node);
 	};
 }

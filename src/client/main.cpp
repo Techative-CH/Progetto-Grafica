@@ -21,6 +21,7 @@
 #include "hanoiGame.h"
 
 Eng::Node* root = nullptr;
+Eng::List* renderList = nullptr;
 Eng::Texture* checkerboard = nullptr;
 Eng::Material* checkerMaterial = nullptr;
 
@@ -205,6 +206,12 @@ int main(int argc, char* argv[])
 	root->addChild(cube1);
 	cube1->addChild(cube2);
 	cube2->addChild(cube3);
+
+	renderList = eng.buildList(root);
+
+	std::cout << "Render elements: "
+		<< renderList->size()
+		<< std::endl;
 	
 	// Callbacks
 	eng.setDisplayCallback(displayCallback);
@@ -230,6 +237,9 @@ int main(int argc, char* argv[])
 	std::cout << "Engine started correctly" << std::endl;
 
 	eng.mainLoop();
+
+	delete renderList;
+	renderList = nullptr;
 
 	delete root;
 	root = nullptr;

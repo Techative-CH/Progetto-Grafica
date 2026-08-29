@@ -4,6 +4,7 @@
 
 Eng::Node::Node(const std::string& name) :
 	Object { name },
+	parent { nullptr },
 	position { 0.0f, 0.0f, 0.0f },
 	rotationAxis { 0.0f, 1.0f, 0.0f },
 	rotationAngle { 0.0f },
@@ -19,12 +20,22 @@ Eng::Node::~Node()
 
 void Eng::Node::addChild(Node* child)
 {
+	if (child == nullptr)
+		return;
+
+	child->parent = this;
+
 	children.push_back(child);
 }
 
 const std::vector<Eng::Node*>& Eng::Node::getChildren() const
 {
 	return children;
+}
+
+Eng::Node* Eng::Node::getParent() const
+{
+	return parent;
 }
 
 void Eng::Node::setPosition(float x, float y, float z)
@@ -52,6 +63,14 @@ glm::mat4 Eng::Node::getLocalMatrix() const
 	matrix = glm::scale(matrix, scale);
 
 	return matrix;
+}
+
+glm::mat4 Eng::Node::getWorldMatrix() const
+{
+	if (parent != nullptr)
+		return parent->getWorldMatrix() * getLocalMatrix();
+
+	return getLocalMatrix();
 }
 
 void Eng::Node::render()

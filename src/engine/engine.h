@@ -124,8 +124,6 @@ private: //
 
    // Const/dest:
    Base();
-
-   void buildListRecursive(Node* node, List* list);
 };
 
 }; // end of namespace Eng::

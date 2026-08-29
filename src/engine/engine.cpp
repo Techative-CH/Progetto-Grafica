@@ -402,25 +402,10 @@ void ENG_API Eng::Base::drawCube(float edge)
     glEnd();
 }
 
-void Eng::Base::buildListRecursive(Node* node, List* list)
-{
-    if (node == nullptr)
-        return;
-
-    list->add(node);
-
-    for (Node* child : node->getChildren())
-        buildListRecursive(child, list);
-}
-
 Eng::List* Eng::Base::buildList(Node* root)
 {
     List* list = new List("renderList");
-
-    if (root == nullptr)
-        return list;
-
-    buildListRecursive(root, list);
+    list->pass(root);
 
     return list;
 }
