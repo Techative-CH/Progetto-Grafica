@@ -209,6 +209,18 @@ int main(int argc, char* argv[])
 	eng.setPerspective(45.0f, 640.0f / 480.0f, 1.0f, 100.0f);
 	eng.setBackgroundColor(0.0f, 0.0f, 0.0f);
 
+	Eng::Node* testOvo = eng.load("simple3dScene.ovo");
+
+	if (testOvo != nullptr)
+	{
+		std::cout << "OVO loaded successfully" << std::endl;
+		delete testOvo;
+	}
+	else
+	{
+		std::cout << "OVO loading failed" << std::endl;
+	}
+
 	root = new Eng::Node("root");
 
 	cube1 = new Eng::Mesh("cube1");

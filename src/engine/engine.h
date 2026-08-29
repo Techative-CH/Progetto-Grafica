@@ -14,6 +14,7 @@
 
 // C/C++:         
 #include <memory> 
+#include <string>
 
 #include "engineApi.h"
 
@@ -114,6 +115,9 @@ public: //
    List* buildList(Node* root);
    void render(Node* node);
    void render(List* list);
+
+   // Load OVO Model
+   Node* load(const std::string& filename);
 
 ///////////
 private: //

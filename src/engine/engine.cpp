@@ -14,6 +14,7 @@
 // Main include:
 #include "engine.h"
 #include "node.h"
+#include "ovoReader.h"
 
 // C/C++:
 #include <iostream>
@@ -527,4 +528,10 @@ void ENG_API Eng::Base::render(Eng::List* list)
         glEnable(GL_LIGHTING);
     else
         glDisable(GL_LIGHTING);
+}
+
+Eng::Node* Eng::Base::load(const std::string& filename)
+{
+    OvoReader reader;
+    return reader.load(filename);
 }
