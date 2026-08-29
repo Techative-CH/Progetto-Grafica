@@ -37,8 +37,11 @@ void displayCallback()
 	eng.clearWindow();
 	eng.loadIdentity();
 
-	if (root != nullptr)
-		eng.render(root);
+	if (root != nullptr && renderList != nullptr)
+	{
+		renderList->pass(root);
+		eng.render(renderList);
+	}
 
 	eng.swapBuffers();
 }

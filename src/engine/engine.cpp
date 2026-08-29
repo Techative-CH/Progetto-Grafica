@@ -427,3 +427,27 @@ void ENG_API Eng::Base::render(Eng::Node* node)
 
     glPopMatrix();
 }
+
+void ENG_API Eng::Base::render(Eng::List* list)
+{
+    if (list == nullptr)
+        return;
+
+    for (std::size_t i = 0; i < list->size(); ++i)
+    {
+        const RenderElement* element = list->get(i);
+
+        if (element == nullptr || element->node == nullptr)
+            continue;
+
+        glPushMatrix();
+
+        glMultMatrixf(
+            glm::value_ptr(element->worldMatrix)
+        );
+
+        element->node->render();
+
+        glPopMatrix();
+    }
+}

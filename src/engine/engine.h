@@ -113,6 +113,7 @@ public: //
    // Rendering:
    List* buildList(Node* root);
    void render(Node* node);
+   void render(List* list);
 
 ///////////
 private: //
