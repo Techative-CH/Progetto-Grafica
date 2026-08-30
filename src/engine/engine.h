@@ -15,6 +15,7 @@
 // C/C++:         
 #include <memory> 
 #include <string>
+#include <vector>
 
 #include "engineApi.h"
 
@@ -111,17 +112,26 @@ public: //
    // Primitives:
    void drawCube(float edge);
 
+   // Cameras:
+   void addCamera(Camera* camera);
+   void setCamera(Camera* camera);
+   Camera* getCamera() const;
+   Camera* getCameraAt(unsigned int index) const;
+
    // Rendering:
    List* buildList(Node* root);
    void render(Node* node);
    void render(List* list);
 
-   // Load OVO Model
+   // Load OVO Model:
    Node* load(const std::string& filename);
 
 ///////////
 private: //
 ///////////	
+
+	Camera* currentCamera;
+	std::vector<Camera*> cameras;
 
    // Reserved:
    struct Reserved;

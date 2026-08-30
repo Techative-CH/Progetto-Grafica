@@ -12,6 +12,7 @@
 
  // Library header:
 #include "engine.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 // C/C++:
 #include <iostream>
@@ -26,6 +27,7 @@
 
 Eng::Node* root = nullptr;
 Eng::List* renderList = nullptr;
+Eng::Camera* camera = nullptr;
 
 
 ////////////////////////
@@ -58,12 +60,15 @@ void reshapeCallback(int width, int height)
 
     eng.setViewport(0, 0, width, height);
 
-    eng.setPerspective(
-        45.0f,
-        static_cast<float>(width) / static_cast<float>(height),
-        1.0f,
-        1000.0f
-    );
+    if (camera != nullptr)
+    {
+        camera->setPerspective(
+            45.0f,
+            static_cast<float>(width) / static_cast<float>(height),
+            0.1f,
+            1000.0f
+        );
+    }
 }
 
 
@@ -86,6 +91,32 @@ void specialCallback(int key, int mouseX, int mouseY)
         << "Special key pressed: "
         << key
         << std::endl;
+}
+
+void printNodePositions(Eng::Node* node, int depth = 0)
+{
+    if (!node)
+        return;
+
+    glm::mat4 world = node->getWorldMatrix();
+
+    glm::vec3 position(
+        world[3][0],
+        world[3][1],
+        world[3][2]
+    );
+
+    std::cout
+        << std::string(depth * 2, ' ')
+        << node->getName()
+        << " -> "
+        << position.x << ", "
+        << position.y << ", "
+        << position.z
+        << std::endl;
+
+    for (Eng::Node* child : node->getChildren())
+        printNodePositions(child, depth + 1);
 }
 
 
@@ -115,15 +146,8 @@ int main(int argc, char* argv[])
 
     eng.init(
         "Tower of Hanoi",
-        640,
-        480
-    );
-
-    eng.setPerspective(
-        45.0f,
-        640.0f / 480.0f,
-        1.0f,
-        1000.0f
+        800,
+        600
     );
 
     eng.setBackgroundColor(
@@ -149,6 +173,8 @@ int main(int argc, char* argv[])
 
         return -1;
     }
+
+    printNodePositions(root);
 
     std::cout
         << "OVO loaded successfully"
@@ -179,6 +205,31 @@ int main(int argc, char* argv[])
         << "Render elements: "
         << renderList->getElements().size()
         << std::endl;
+
+    ////////////
+    // CAMERA //
+    ////////////
+
+    camera = new Eng::Camera("MainCamera");
+
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(250.0f, 180.0f, 300.0f),  // posizione camera
+        glm::vec3(25.0f, 40.0f, -35.0f),    // punto osservato
+        glm::vec3(0.0f, 1.0f, 0.0f)         // up
+    );
+
+    camera->setLocalMatrix(
+        glm::inverse(view)
+    );
+
+    camera->setPerspective(
+        45.0f,
+        800.0f / 600.0f,
+        0.1f,
+        1000.0f
+    );
+
+    eng.addCamera(camera);
 
 
     ///////////////

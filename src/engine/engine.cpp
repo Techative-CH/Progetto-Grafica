@@ -434,6 +434,35 @@ void ENG_API Eng::Base::drawCube(float edge)
     glEnd();
 }
 
+void Eng::Base::addCamera(Camera* camera)
+{
+    if (camera == nullptr)
+        return;
+
+    cameras.push_back(camera);
+
+    if (currentCamera == nullptr)
+        currentCamera = camera;
+}
+
+void Eng::Base::setCamera(Camera* camera)
+{
+    currentCamera = camera;
+}
+
+Eng::Camera* Eng::Base::getCamera() const
+{
+    return currentCamera;
+}
+
+Eng::Camera* Eng::Base::getCameraAt(unsigned int index) const
+{
+    if (index >= cameras.size())
+        return nullptr;
+
+    return cameras[index];
+}
+
 Eng::List* Eng::Base::buildList(Node* root)
 {
     List* list = new List("renderList");
@@ -442,28 +471,18 @@ Eng::List* Eng::Base::buildList(Node* root)
     return list;
 }
 
-void ENG_API Eng::Base::render(Eng::Node* node)
-{
-    if (node == nullptr)
-        return;
-
-    glPushMatrix();
-
-    glm::mat4 localMatrix = node->getLocalMatrix();
-    glMultMatrixf(glm::value_ptr(localMatrix));
-
-    node->render();
-
-    for (Eng::Node* child : node->getChildren())
-        render(child);
-
-    glPopMatrix();
-}
-
 void ENG_API Eng::Base::render(Eng::List* list)
 {
-    if (list == nullptr)
+    if (!list || !currentCamera)
         return;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(
+        glm::value_ptr(currentCamera->getProjectionMatrix())
+    );
+
+    const glm::mat4 viewMatrix =
+        currentCamera->getViewMatrix();
 
     GLint maxLights = 0;
     glGetIntegerv(GL_MAX_LIGHTS, &maxLights);
@@ -474,6 +493,14 @@ void ENG_API Eng::Base::render(Eng::List* list)
     {
         if (element.node == nullptr)
             continue;
+
+        glm::mat4 modelViewMatrix =
+            viewMatrix * element.worldMatrix;
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf(
+            glm::value_ptr(modelViewMatrix)
+        );
 
         glPushMatrix();
 
