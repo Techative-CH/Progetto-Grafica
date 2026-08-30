@@ -1,8 +1,10 @@
 #include "texture.h"
 
 #include <GL/freeglut.h>
+#include <FreeImage.h>
 
 #include <vector>
+#include <iostream>
 
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
@@ -10,6 +12,14 @@
 
 #ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
+#ifndef GL_BGR
+#define GL_BGR 0x80E0
+#endif
+
+#ifndef GL_BGRA
+#define GL_BGRA 0x80E1
 #endif
 
 Eng::Texture::Texture(const std::string& name)
@@ -141,6 +151,146 @@ void Eng::Texture::bind() const
 void Eng::Texture::unbind() const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+bool Eng::Texture::loadFromFile(const std::string& filePath)
+{
+	FREE_IMAGE_FORMAT format =
+		FreeImage_GetFileType(filePath.c_str(), 0);
+
+	if (format == FIF_UNKNOWN)
+	{
+		format =
+			FreeImage_GetFIFFromFilename(
+				filePath.c_str()	
+			);
+	}
+
+	if (format == FIF_UNKNOWN)
+	{
+		std::cerr
+			<< "Unknown texture format: "
+			<< filePath
+			<< std::endl;
+
+		return false;
+	}
+
+	FIBITMAP* bitmap =
+		FreeImage_Load(
+			format,
+			filePath.c_str()
+		);
+
+	if (bitmap == nullptr)
+	{
+		std::cerr
+			<< "Unable to load texture: "
+			<< filePath
+			<< std::endl;
+
+		return false;
+	}
+
+	// Required by the professor for DDS textures.
+	if (format == FIF_DDS)
+	{
+		FreeImage_FlipVertical(bitmap);
+	}
+
+	unsigned int bpp =
+		FreeImage_GetBPP(bitmap);
+
+	if (bpp != 24 && bpp != 32)
+	{
+		std::cerr
+			<< "Unsupported texture depth ("
+			<< bpp
+			<< " bpp): "
+			<< filePath
+			<< std::endl;
+
+		FreeImage_Unload(bitmap);
+		return false;
+	}
+
+	width =
+		static_cast<int>(
+			FreeImage_GetWidth(bitmap)
+			);
+
+	height =
+		static_cast<int>(
+			FreeImage_GetHeight(bitmap)
+			);
+
+	BYTE* bits =
+		FreeImage_GetBits(bitmap);
+
+	if (bits == nullptr ||
+		width <= 0 ||
+		height <= 0)
+	{
+		FreeImage_Unload(bitmap);
+		return false;
+	}
+
+	if (textureId != 0)
+	{
+		glDeleteTextures(
+			1,
+			&textureId
+		);
+
+		textureId = 0;
+	}
+
+	glGenTextures(
+		1,
+		&textureId
+	);
+
+	glBindTexture(
+		GL_TEXTURE_2D,
+		textureId
+	);
+
+	GLenum internalFormat;
+	GLenum imageFormat;
+
+	if (bpp == 32)
+	{
+		internalFormat = GL_RGBA;
+		imageFormat = GL_BGRA;
+	}
+	else
+	{
+		internalFormat = GL_RGB;
+		imageFormat = GL_BGR;
+	}
+
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		internalFormat,
+		width,
+		height,
+		0,
+		imageFormat,
+		GL_UNSIGNED_BYTE,
+		bits
+	);
+
+	applyParameters();
+
+	glBindTexture(
+		GL_TEXTURE_2D,
+		0
+	);
+
+	FreeImage_Unload(bitmap);
+
+	return true;
 }
 
 void Eng::Texture::render() const

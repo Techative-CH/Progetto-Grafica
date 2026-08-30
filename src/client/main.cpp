@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
     // LOAD OVO SCENE //
     ////////////////////
 
-    root = eng.load("simple3dScene.ovo");
+    root = eng.load("assets/simple3dScene.ovo");
 
     if (root == nullptr)
     {
@@ -179,7 +179,6 @@ int main(int argc, char* argv[])
     std::cout
         << "OVO loaded successfully"
         << std::endl;
-
 
     ///////////////////////
     // BUILD RENDER LIST //

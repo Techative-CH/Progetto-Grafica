@@ -32,6 +32,7 @@ namespace Eng
 			int height
 		);
 
+		bool loadFromFile(const std::string& filePath);
 		void render() const;
 
 		void setAnisotropy(float value);

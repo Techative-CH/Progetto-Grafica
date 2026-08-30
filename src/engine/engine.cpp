@@ -28,6 +28,9 @@
 // FreeGLUT
 #include <GL/freeglut.h>
 
+// FreeImage
+#include <FreeImage.h>
+
 // Callbacks
 static void (*userDisplayCallback)() = nullptr;
 static void (*userReshapeCallback)(int, int) = nullptr;
@@ -145,6 +148,8 @@ bool ENG_API Eng::Base::init(const char* windowTitle, int width, int height)
     if (reserved->initFlag)
         return false;
 
+    FreeImage_Initialise();
+
     int argc = 1;
     char* argv[1] = { (char*)"engine" };
 
@@ -183,6 +188,7 @@ bool ENG_API Eng::Base::free()
    }
 
    // Here you can properly dispose of any allocated resource (including third-party dependencies)...
+   FreeImage_DeInitialise();
 
    // Done:
    std::cout << "[<] " << LIB_NAME << " deinitialized" << std::endl;
