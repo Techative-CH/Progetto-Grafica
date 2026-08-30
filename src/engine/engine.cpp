@@ -84,7 +84,7 @@ struct Eng::Base::Reserved
    /**
     * Constructor.
     */
-   Reserved() : 
+   Reserved() :
        initFlag { false },
        running { false },
        windowId { 0 }
@@ -101,7 +101,7 @@ struct Eng::Base::Reserved
 /**
  * Constructor.
  */
-ENG_API Eng::Base::Base() : 
+ENG_API Eng::Base::Base() :
     currentCamera { nullptr },
     reserved(std::make_unique<Eng::Base::Reserved>())
 {
@@ -490,16 +490,6 @@ void ENG_API Eng::Base::render(Eng::List* list)
         if (element.node == nullptr)
             continue;
 
-        glm::mat4 modelViewMatrix =
-            viewMatrix * element.worldMatrix;
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(glm::value_ptr(modelViewMatrix));
-
-        glPushMatrix();
-
-        glMultMatrixf(glm::value_ptr(element.worldMatrix));
-
         if (auto* light = dynamic_cast<Light*>(element.node))
         {
             if (lightIndex >= maxLights)
@@ -508,10 +498,9 @@ void ENG_API Eng::Base::render(Eng::List* list)
             glEnable(GL_LIGHTING);
 
             GLenum lightId = GL_LIGHT0 + lightIndex;
-
             glEnable(lightId);
 
-            light->render(
+            light->renderLight(
                 element.worldMatrix,
                 viewMatrix,
                 lightId
@@ -521,10 +510,16 @@ void ENG_API Eng::Base::render(Eng::List* list)
         }
         else
         {
+            glm::mat4 modelViewMatrix =
+                viewMatrix * element.worldMatrix;
+
+            glMatrixMode(GL_MODELVIEW);
+            glLoadMatrixf(
+                glm::value_ptr(modelViewMatrix)
+            );
+
             element.node->render();
         }
-
-        glPopMatrix();
     }
 
     if (lightIndex > 0)

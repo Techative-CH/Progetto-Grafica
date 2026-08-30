@@ -18,7 +18,7 @@ namespace Eng
 
         const glm::vec3& getDirection() const;
 
-        void render(
+        void renderLight(
             const glm::mat4& worldMatrix,
             const glm::mat4& viewMatrix,
             unsigned int lightId

@@ -21,7 +21,7 @@ float Eng::OmniLight::getRadius() const
     return radius;
 }
 
-void Eng::OmniLight::render(
+void Eng::OmniLight::renderLight(
     const glm::mat4& worldMatrix,
     const glm::mat4& viewMatrix,
     unsigned int lightId)

@@ -23,7 +23,7 @@ Eng::DirectionalLight::getDirection() const
     return direction;
 }
 
-void Eng::DirectionalLight::render(
+void Eng::DirectionalLight::renderLight(
     const glm::mat4& worldMatrix,
     const glm::mat4& viewMatrix,
     unsigned int lightId)

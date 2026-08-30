@@ -27,7 +27,7 @@ namespace Eng
         void setSpotExponent(float exponent);
         float getSpotExponent() const;
 
-        void render(
+        void renderLight(
             const glm::mat4& worldMatrix,
             const glm::mat4& viewMatrix,
             unsigned int lightId

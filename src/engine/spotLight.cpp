@@ -57,7 +57,7 @@ float Eng::SpotLight::getSpotExponent() const
     return spotExponent;
 }
 
-void Eng::SpotLight::render(
+void Eng::SpotLight::renderLight(
     const glm::mat4& worldMatrix,
     const glm::mat4& viewMatrix,
     unsigned int lightId)

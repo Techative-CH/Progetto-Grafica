@@ -15,7 +15,7 @@ namespace Eng
         void setRadius(float radius);
         float getRadius() const;
 
-        void render(
+        void renderLight(
             const glm::mat4& worldMatrix,
             const glm::mat4& viewMatrix,
             unsigned int lightId

@@ -16,7 +16,9 @@ namespace Eng
 
         virtual ~Light();
 
-        virtual void render(
+        void render() override {}
+
+        virtual void renderLight(
             const glm::mat4& worldMatrix,
             const glm::mat4& viewMatrix,
             unsigned int lightId
