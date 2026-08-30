@@ -16,6 +16,7 @@
 #include <memory> 
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "engineApi.h"
 
@@ -133,12 +134,19 @@ private: //
 	Camera* currentCamera;
 	std::vector<Camera*> cameras;
 
+	std::chrono::time_point<std::chrono::steady_clock> lastFpsTime;
+	int frameCount = 0;
+	float fps = 0.0f;
+
    // Reserved:
    struct Reserved;
    std::unique_ptr<Reserved> reserved;
 
    // Const/dest:
    Base();
+
+   void calculateFPS();
+   void renderFPS();
 };
 
 }; // end of namespace Eng::

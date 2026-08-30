@@ -43,14 +43,14 @@ void displayCallback()
 
     if (root != nullptr && renderList != nullptr)
     {
-        // Rebuild the render list in case scene transforms change:
         renderList->pass(root);
-
-        // Render loaded OVO scene:
         eng.render(renderList);
     }
 
     eng.swapBuffers();
+
+    // Request next frame:
+    eng.postRedisplay();
 }
 
 

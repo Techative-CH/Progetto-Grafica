@@ -106,6 +106,7 @@ struct Eng::Base::Reserved
  */
 ENG_API Eng::Base::Base() :
     currentCamera { nullptr },
+    lastFpsTime{ std::chrono::steady_clock::now() },
     reserved(std::make_unique<Eng::Base::Reserved>())
 {
 #ifdef _DEBUG
@@ -210,6 +211,7 @@ void ENG_API Eng::Base::clearWindow()
 
 void ENG_API Eng::Base::swapBuffers()
 {
+    renderFPS();
     glutSwapBuffers();
 }
 
@@ -538,4 +540,80 @@ Eng::Node* Eng::Base::load(const std::string& filename)
 {
     OvoReader reader;
     return reader.load(filename);
+}
+
+void Eng::Base::calculateFPS()
+{
+    ++frameCount;
+
+    auto now = std::chrono::steady_clock::now();
+
+    float elapsed = std::chrono::duration<float>(now - lastFpsTime).count();
+
+    if (elapsed >= 1.0f)
+    {
+        fps = static_cast<float>(frameCount) / elapsed;
+
+        frameCount = 0;
+        lastFpsTime = now;
+    }
+}
+
+void Eng::Base::renderFPS()
+{
+    calculateFPS();
+
+    int width = glutGet(GLUT_WINDOW_WIDTH);
+    int height = glutGet(GLUT_WINDOW_HEIGHT);
+
+    // Save current OpenGL states:
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
+
+    // FPS overlay must not be affected by scene rendering:
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+
+    // Save projection matrix:
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glOrtho(
+        0.0,
+        static_cast<double>(width),
+        0.0,
+        static_cast<double>(height),
+        -1.0,
+        1.0
+    );
+
+    // Save model-view matrix:
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // White text:
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    std::string text = "FPS: " + std::to_string(static_cast<int>(fps));
+
+    // Top-left corner:
+    glRasterPos2i(10, height - 20);
+
+    for (char character : text)
+    {
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, character);
+    }
+
+    // Restore matrices:
+    glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+
+    // Restore previous OpenGL states:
+    glPopAttrib();
 }
