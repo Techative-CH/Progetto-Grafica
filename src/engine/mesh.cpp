@@ -87,7 +87,4 @@ void Eng::Mesh::render()
     {
         Base::getInstance().drawCube(cubeEdge);
     }
-
-    if (material != nullptr)
-        material->unbind();
 }

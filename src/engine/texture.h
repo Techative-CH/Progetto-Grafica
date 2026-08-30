@@ -1,20 +1,10 @@
 #pragma once
 
-#include "engineApi.h"
 #include "object.h"
 
-#include <string>
 #include <vector>
 
-#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
-#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
-#endif
-
-#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
-#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
-#endif
-
-namespace Eng 
+namespace Eng
 {
 	enum class TextureFilter
 	{
@@ -35,22 +25,36 @@ namespace Eng
 	{
 	public:
 		Texture(const std::string& name);
-		~Texture();
+		virtual ~Texture();
 
-		bool createCheckerboard(int width, int height);
+		bool createCheckerboard(
+			int width,
+			int height
+		);
+
+		void render() const;
+
+		void setAnisotropy(float value);
+		float getAnisotropy() const;
+		float getMaxAnisotropy() const;
 
 		void setFilter(TextureFilter filter);
 		void setWrap(TextureWrap wrap);
 
-		float getAnisotropy() const;
-		float getMaxAnisotropy() const;
-		void setAnisotropy(float value);
-
+	private:
 		void bind() const;
 		void unbind() const;
 
-	private:
+		void applyParameters() const;
+
+		std::vector<unsigned char> buildCheckerboardBitmap(
+			int width,
+			int height,
+			int tileSize
+		) const;
+
 		unsigned int textureId;
+
 		int width;
 		int height;
 
@@ -59,12 +63,5 @@ namespace Eng
 
 		TextureFilter filter;
 		TextureWrap wrap;
-
-		std::vector<unsigned char> buildCheckerboardBitmap(
-			int width,
-			int height,
-			int tileSize
-		) const;
-		void applyParameters() const;
 	};
 }

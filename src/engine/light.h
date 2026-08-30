@@ -1,6 +1,5 @@
 #pragma once
 
-#include "engineApi.h"
 #include "node.h"
 
 #include <glm/glm.hpp>
@@ -10,33 +9,21 @@ namespace Eng
     class ENG_API Light : public Node
     {
     public:
-        enum class Subtype
-        {
-            OMNI = 0,
-            DIRECTIONAL,
-            SPOT
-        };
+        Light(
+            const std::string& name,
+            const glm::vec3& color
+        );
 
-        Light(const std::string& name);
         virtual ~Light();
 
-        void setSubtype(Subtype subtype);
-        Subtype getSubtype() const;
+        virtual void render(
+            const glm::mat4& worldMatrix,
+            const glm::mat4& viewMatrix,
+            unsigned int lightId
+        ) = 0;
 
         void setColor(float r, float g, float b);
         const glm::vec3& getColor() const;
-
-        void setRadius(float radius);
-        float getRadius() const;
-
-        void setDirection(const glm::vec3& direction);
-        const glm::vec3& getDirection() const;
-
-        void setCutoff(float cutoff);
-        float getCutoff() const;
-
-        void setSpotExponent(float exponent);
-        float getSpotExponent() const;
 
         void setCastShadows(bool value);
         bool getCastShadows() const;
@@ -44,16 +31,8 @@ namespace Eng
         void setVolumetric(bool value);
         bool getVolumetric() const;
 
-        void render() override;
-
-    private:
-        Subtype subtype;
+    protected:
         glm::vec3 color;
-
-        float radius;
-        glm::vec3 direction;
-        float cutoff;
-        float spotExponent;
 
         bool castShadows;
         bool volumetric;

@@ -4,6 +4,14 @@
 
 #include <vector>
 
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#endif
+
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+
 Eng::Texture::Texture(const std::string& name)
 	: Object{ name },
 	textureId{ 0 },
@@ -133,6 +141,14 @@ void Eng::Texture::bind() const
 void Eng::Texture::unbind() const
 {
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Eng::Texture::render() const
+{
+	if (textureId == 0)
+		return;
+
+	bind();
 }
 
 void Eng::Texture::setAnisotropy(float value)

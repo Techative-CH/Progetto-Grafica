@@ -2,6 +2,9 @@
 #include "node.h"
 #include "mesh.h"
 #include "light.h"
+#include "omniLight.h"
+#include "directionalLight.h"
+#include "spotLight.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/packing.hpp>
@@ -334,24 +337,60 @@ Eng::Node* Eng::OvoReader::load(const std::string& filename)
             // OUR ENGINE ADAPTATION
             // -----------------------------------------
 
-            Eng::Light* light = new Eng::Light(lightName);
+            Eng::Light* light = nullptr;
+
+            switch (subtype)
+            {
+            case 0:
+            {
+                auto* omni = new Eng::OmniLight(lightName, color);
+
+                omni->setRadius(radius);
+
+                light = omni;
+
+                break;
+            }
+
+            case 1:
+            {
+                auto* directional = new Eng::DirectionalLight(lightName, color);
+
+                directional->setDirection(direction);
+
+                light = directional;
+
+                break;
+            }
+
+            case 2:
+            {
+                auto* spot = new Eng::SpotLight(lightName, color);
+
+                spot->setRadius(radius);
+                spot->setDirection(direction);
+                spot->setCutoff(cutoff);
+                spot->setSpotExponent(spotExponent);
+
+                light = spot;
+
+                break;
+            }
+
+            default:
+                std::cerr
+                    << "Unsupported light subtype: "
+                    << static_cast<int>(subtype)
+                    << std::endl;
+
+                break;
+            }
+
+            if (light == nullptr)
+                break;
 
             light->setLocalMatrix(matrix);
 
-            light->setSubtype(
-                static_cast<Eng::Light::Subtype>(subtype)
-            );
-
-            light->setColor(
-                color.r,
-                color.g,
-                color.b
-            );
-
-            light->setRadius(radius);
-            light->setDirection(direction);
-            light->setCutoff(cutoff);
-            light->setSpotExponent(spotExponent);
             light->setCastShadows(castShadows != 0);
             light->setVolumetric(isVolumetric != 0);
 
@@ -740,40 +779,19 @@ Eng::Node* Eng::OvoReader::load(const std::string& filename)
 
             Eng::Material* material = new Eng::Material(materialName);
 
-            material->setEmission(
-                emission.r,
-                emission.g,
-                emission.b
-            );
+            glm::vec3 ambient = albedo * 0.2f;
+            material->setAmbient(ambient.r, ambient.g, ambient.b, alpha);
 
-            material->setAmbient(
-                albedo.r * 0.2f,
-                albedo.g * 0.2f,
-                albedo.b * 0.2f
-            );
+            glm::vec3 diffuse = albedo * 0.6f;
+            material->setDiffuse(diffuse.r, diffuse.g, diffuse.b, alpha);
 
-            material->setDiffuse(
-                albedo.r,
-                albedo.g,
-                albedo.b
-            );
+            glm::vec3 specular = albedo * 0.4f;
+            material->setSpecular(specular.r, specular.g, specular.b, alpha);
 
-            glm::vec3 specular =
-                glm::mix(
-                    glm::vec3(0.04f),
-                    albedo,
-                    metalness
-                );
+            material->setEmission(emission.r, emission.g, emission.b, alpha);
 
-            material->setSpecular(
-                specular.r,
-                specular.g,
-                specular.b
-            );
-
-            material->setShininess(
-                (1.0f - roughness) * 128.0f
-            );
+            float shininess = (1.0f - std::sqrt(roughness)) * 128.0f;
+            material->setShininess(shininess);
 
             materials[materialName] = material;
 

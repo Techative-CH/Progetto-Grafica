@@ -81,6 +81,16 @@ float Eng::Material::getShininess() const
 
 void Eng::Material::render()
 {
+    if (texture != nullptr)
+    {
+        glEnable(GL_TEXTURE_2D);
+        texture->render();
+    }
+    else
+    {
+        glDisable(GL_TEXTURE_2D);
+    }
+
     glMaterialfv(
         GL_FRONT_AND_BACK,
         GL_EMISSION,
@@ -110,13 +120,4 @@ void Eng::Material::render()
         GL_SHININESS,
         shininess
     );
-
-    if (texture != nullptr)
-        texture->bind();
-}
-
-void Eng::Material::unbind()
-{
-    if (texture != nullptr)
-        texture->unbind();
 }

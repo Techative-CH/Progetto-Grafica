@@ -101,7 +101,9 @@ struct Eng::Base::Reserved
 /**
  * Constructor.
  */
-ENG_API Eng::Base::Base() : reserved(std::make_unique<Eng::Base::Reserved>())
+ENG_API Eng::Base::Base() : 
+    currentCamera { nullptr },
+    reserved(std::make_unique<Eng::Base::Reserved>())
 {
 #ifdef _DEBUG
    std::cout << "[+] " << std::source_location::current().function_name() << " invoked" << std::endl;
@@ -157,12 +159,6 @@ bool ENG_API Eng::Base::init(const char* windowTitle, int width, int height)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_NORMALIZE);
-    glEnable(GL_COLOR_MATERIAL);
-
-    glColorMaterial(
-        GL_FRONT_AND_BACK,
-        GL_AMBIENT_AND_DIFFUSE
-    );
 
     reserved->initFlag = true;
     reserved->running = true;
@@ -498,50 +494,30 @@ void ENG_API Eng::Base::render(Eng::List* list)
             viewMatrix * element.worldMatrix;
 
         glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(
-            glm::value_ptr(modelViewMatrix)
-        );
+        glLoadMatrixf(glm::value_ptr(modelViewMatrix));
 
         glPushMatrix();
 
-        glMultMatrixf(
-            glm::value_ptr(element.worldMatrix)
-        );
+        glMultMatrixf(glm::value_ptr(element.worldMatrix));
 
-        Light* light = dynamic_cast<Light*>(element.node);
-
-        if (light != nullptr)
+        if (auto* light = dynamic_cast<Light*>(element.node))
         {
-            if (lightIndex < maxLights)
-            {
-                GLenum lightId = GL_LIGHT0 + lightIndex;
+            if (lightIndex >= maxLights)
+                continue;
 
-                glEnable(lightId);
+            glEnable(GL_LIGHTING);
 
-                const glm::vec3& color = light->getColor();
+            GLenum lightId = GL_LIGHT0 + lightIndex;
 
-                GLfloat diffuse[] =
-                {
-                    color.r,
-                    color.g,
-                    color.b,
-                    1.0f
-                };
+            glEnable(lightId);
 
-                glLightfv(lightId, GL_DIFFUSE, diffuse);
+            light->render(
+                element.worldMatrix,
+                viewMatrix,
+                lightId
+            );
 
-                GLfloat position[] =
-                {
-                    0.0f,
-                    0.0f,
-                    0.0f,
-                    1.0f
-                };
-
-                glLightfv(lightId, GL_POSITION, position);
-
-                ++lightIndex;
-            }
+            ++lightIndex;
         }
         else
         {
