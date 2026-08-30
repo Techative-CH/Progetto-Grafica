@@ -45,6 +45,7 @@
 			<Add option="-m64" />
 			<Add option="-lglut" />
 			<Add option="-lGL" />
+			<Add library="freeimage" />
 		</Linker>
 		<Unit filename="camera.cpp" />
 		<Unit filename="camera.h" />
