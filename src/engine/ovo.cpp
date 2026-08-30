@@ -5,6 +5,7 @@
 #include "omniLight.h"
 #include "directionalLight.h"
 #include "spotLight.h"
+#include "texture.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/packing.hpp>
@@ -14,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <filesystem>
 
 namespace
 {
@@ -119,6 +121,9 @@ namespace
 
 Eng::Node* Eng::OvoReader::load(const std::string& filename)
 {
+    std::filesystem::path ovoPath(filename);
+    std::filesystem::path baseDir = ovoPath.parent_path();
+
     FILE* dat = nullptr;
 
 #ifdef _WIN32
@@ -792,6 +797,37 @@ Eng::Node* Eng::OvoReader::load(const std::string& filename)
 
             float shininess = (1.0f - std::sqrt(roughness)) * 128.0f;
             material->setShininess(shininess);
+
+            if (std::strcmp(textureName, "[none]") != 0)
+            {
+                std::filesystem::path texturePath =
+                    baseDir / textureName;
+
+                Eng::Texture* texture =
+                    new Eng::Texture(textureName);
+
+                texture->setFilter(
+                    Eng::TextureFilter::LINEAR
+                );
+
+                texture->setWrap(
+                    Eng::TextureWrap::REPEAT
+                );
+
+                if (texture->loadFromFile(texturePath.string()))
+                {
+                    material->setTexture(texture);
+                }
+                else
+                {
+                    delete texture;
+
+                    std::cerr
+                        << "Unable to load texture: "
+                        << texturePath.string()
+                        << std::endl;
+                }
+            }
 
             materials[materialName] = material;
 
