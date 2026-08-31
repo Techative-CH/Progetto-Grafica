@@ -128,6 +128,10 @@ public: //
    // Load OVO Model:
    Node* load(const std::string& filename);
 
+   // Wireframe mode
+   void setWireframe(bool enabled);
+   bool isWireframe() const;
+
 ///////////
 private: //
 ///////////	
@@ -138,6 +142,8 @@ private: //
 	std::chrono::time_point<std::chrono::steady_clock> lastFpsTime;
 	int frameCount = 0;
 	float fps = 0.0f;
+
+	bool wireframe = false;
 
    // Reserved:
    struct Reserved;

@@ -547,6 +547,21 @@ Eng::Node* Eng::Base::load(const std::string& filename)
     return reader.load(filename);
 }
 
+void Eng::Base::setWireframe(bool enabled)
+{
+    wireframe = enabled;
+
+    glPolygonMode(
+        GL_FRONT_AND_BACK,
+        wireframe ? GL_LINE : GL_FILL
+    );
+}
+
+bool Eng::Base::isWireframe() const
+{
+    return wireframe;
+}
+
 void Eng::Base::calculateFPS()
 {
     ++frameCount;

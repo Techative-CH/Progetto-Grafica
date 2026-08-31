@@ -354,6 +354,29 @@ void keyboardCallback(
         }
 
         break;
+    ///////////////
+    // WIREFRAME //
+    ///////////////
+
+    case 'w':
+    case 'W':
+    {
+        Eng::Base& eng =
+            Eng::Base::getInstance();
+
+        eng.setWireframe(
+            !eng.isWireframe()
+        );
+
+        std::cout
+            << "Wireframe: "
+            << (eng.isWireframe()
+                ? "ON"
+                : "OFF")
+            << std::endl;
+
+        break;
+    }
     }
 
     Eng::Base::getInstance()
