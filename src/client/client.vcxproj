@@ -81,10 +81,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hanoiGame.cpp" />
+    <ClCompile Include="hanoiScene.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hanoiGame.h" />
+    <ClInclude Include="hanoiScene.h" />
     <ClInclude Include="move.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

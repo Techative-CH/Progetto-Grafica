@@ -16,39 +16,11 @@
 
 // C/C++:
 #include <iostream>
-#include <vector>
-#include <string>
 #include <chrono>
 
-// Hanoi Game
+// Hanoi:
 #include "hanoiGame.h"
-
-
-/////////////////////////
-// ANIMATION STRUCTURES //
-/////////////////////////
-
-enum class AnimationPhase
-{
-    NONE,
-    LIFT,
-    HORIZONTAL,
-    DROP
-};
-
-struct DiskAnimation
-{
-    bool active = false;
-
-    Eng::Node* disk = nullptr;
-
-    glm::vec3 startPosition;
-    glm::vec3 targetPosition;
-
-    float liftHeight = 0.0f;
-
-    AnimationPhase phase = AnimationPhase::NONE;
-};
+#include "hanoiScene.h"
 
 
 //////////////////////
@@ -60,61 +32,22 @@ Eng::List* renderList = nullptr;
 Eng::Camera* camera = nullptr;
 
 HanoiGame game;
-
-std::vector<Eng::Node*> diskNodes;
-std::vector<Eng::Node*> rodNodes;
-std::vector<glm::mat4> rodOriginalMatrices;
-std::vector<glm::mat4> diskOriginalMatrices;
-
-const std::string rodNames[HanoiGame::NUM_RODS] =
-{
-    "Pole_Left",
-    "Pole_Center",
-    "Pole_Right"
-};
-
-float diskSpacing = 0.0f;
-float baseDiskHeight = 0.0f;
+HanoiScene hanoiScene;
 
 int selectedRod = 0;
 int sourceRod = -1;
 
-Eng::Node* selectedDiskNode = nullptr;
-glm::vec3 selectedDiskOriginalPosition;
-
-DiskAnimation animation;
-
 std::chrono::steady_clock::time_point lastFrameTime =
 std::chrono::steady_clock::now();
-
-constexpr float DISK_SPEED = 150.0f;
-constexpr float LIFT_MARGIN = 15.0f;
-constexpr float SELECTION_HEIGHT = 4.0f;
-constexpr float ROD_SELECTION_HEIGHT = 4.0f;
 
 
 /////////////////////////
 // FUNCTION PROTOTYPES //
 /////////////////////////
 
-bool initHanoiNodes();
-
 void resetHanoi();
-
 void undoHanoi();
-
 void redoHanoi();
-
-void moveDiskNode(
-    int disk,
-    int destinationRod
-);
-
-void updateAnimation(
-    float deltaTime
-);
-
-void updateRodSelection();
 
 void printNodePositions(
     Eng::Node* node,
@@ -138,7 +71,7 @@ void displayCallback()
 
     lastFrameTime = currentTime;
 
-    updateAnimation(deltaTime);
+    hanoiScene.update(deltaTime);
 
     Eng::Base& eng =
         Eng::Base::getInstance();
@@ -154,8 +87,6 @@ void displayCallback()
     }
 
     eng.swapBuffers();
-
-    // Request next frame:
     eng.postRedisplay();
 }
 
@@ -200,55 +131,41 @@ void keyboardCallback(
         exit(0);
         break;
 
+
+        //////////
+        // MOVE //
+        //////////
+
     case ' ':
-        // No new move while animation is running:
-        if (animation.active)
+    {
+        if (hanoiScene.isAnimating())
             break;
 
         if (sourceRod == -1)
         {
-            //////////////////
-            // PICK UP DISK //
-            //////////////////
-
+            // Pick up:
             int disk =
                 game.getTopDisk(selectedRod);
 
             if (disk != -1)
             {
-                sourceRod = selectedRod;
+                if (hanoiScene.selectDisk(disk))
+                {
+                    sourceRod =
+                        selectedRod;
 
-                selectedDiskNode =
-                    diskNodes[disk - 1];
-
-                glm::mat4 matrix =
-                    selectedDiskNode
-                    ->getLocalMatrix();
-
-                selectedDiskOriginalPosition =
-                    glm::vec3(matrix[3]);
-
-                // Slightly lift selected disk:
-                matrix[3][1] +=
-                    SELECTION_HEIGHT;
-
-                selectedDiskNode
-                    ->setLocalMatrix(matrix);
-
-                std::cout
-                    << "Selected Disk_"
-                    << disk
-                    << " from rod "
-                    << sourceRod
-                    << std::endl;
+                    std::cout
+                        << "Selected Disk_"
+                        << disk
+                        << " from rod "
+                        << sourceRod
+                        << std::endl;
+                }
             }
         }
         else
         {
-            ///////////////
-            // DROP DISK //
-            ///////////////
-
+            // Drop:
             int disk =
                 game.getTopDisk(sourceRod);
 
@@ -257,13 +174,16 @@ void keyboardCallback(
                 selectedRod
             ))
             {
-                moveDiskNode(
-                    disk,
-                    selectedRod
-                );
+                int destinationLevel =
+                    game.getRodSize(
+                        selectedRod
+                    ) - 1;
 
-                selectedDiskNode =
-                    nullptr;
+                hanoiScene.moveDisk(
+                    disk,
+                    selectedRod,
+                    destinationLevel
+                );
 
                 std::cout
                     << "Moved Disk_"
@@ -285,31 +205,8 @@ void keyboardCallback(
             }
             else
             {
-                //////////////////
-                // INVALID MOVE //
-                //////////////////
-
-                if (selectedDiskNode != nullptr)
-                {
-                    glm::mat4 matrix =
-                        selectedDiskNode
-                        ->getLocalMatrix();
-
-                    matrix[3][0] =
-                        selectedDiskOriginalPosition.x;
-
-                    matrix[3][1] =
-                        selectedDiskOriginalPosition.y;
-
-                    matrix[3][2] =
-                        selectedDiskOriginalPosition.z;
-
-                    selectedDiskNode
-                        ->setLocalMatrix(matrix);
-
-                    selectedDiskNode =
-                        nullptr;
-                }
+                hanoiScene
+                    .cancelDiskSelection();
 
                 std::cout
                     << "Invalid move"
@@ -320,16 +217,32 @@ void keyboardCallback(
         }
 
         break;
+    }
+
+
+    ///////////
+    // RESET //
+    ///////////
 
     case 'r':
     case 'R':
         resetHanoi();
         break;
 
+
+        //////////
+        // UNDO //
+        //////////
+
     case 'z':
     case 'Z':
         undoHanoi();
         break;
+
+
+        //////////
+        // REDO //
+        //////////
 
     case 'y':
     case 'Y':
@@ -348,6 +261,9 @@ void specialCallback(
     int mouseY
 )
 {
+    if (hanoiScene.isAnimating())
+        return;
+
     switch (key)
     {
     case 100: // Left arrow
@@ -376,7 +292,9 @@ void specialCallback(
         return;
     }
 
-    updateRodSelection();
+    hanoiScene.updateRodSelection(
+        selectedRod
+    );
 
     std::cout
         << "Selected rod: "
@@ -388,159 +306,21 @@ void specialCallback(
 }
 
 
-///////////////////////////
-// HANOI SCENE FUNCTIONS //
-///////////////////////////
-
-bool initHanoiNodes()
-{
-    diskNodes.clear();
-    rodNodes.clear();
-    rodOriginalMatrices.clear();
-    diskOriginalMatrices.clear();
-
-    //////////
-    // RODS //
-    //////////
-
-    for (
-        int i = 0;
-        i < HanoiGame::NUM_RODS;
-        i++
-        )
-    {
-        Eng::Node* rod =
-            root->findByName(
-                rodNames[i]
-            );
-
-        if (rod == nullptr)
-        {
-            std::cerr
-                << "Unable to find rod: "
-                << rodNames[i]
-                << std::endl;
-
-            return false;
-        }
-
-        rodNodes.push_back(rod);
-
-        rodOriginalMatrices.push_back(
-            rod->getLocalMatrix()
-        );
-    }
-
-
-    ///////////
-    // DISKS //
-    ///////////
-
-    for (
-        int i = 1;
-        i <= HanoiGame::NUM_DISKS;
-        i++
-        )
-    {
-        std::string diskName =
-            "Disk_" +
-            std::to_string(i);
-
-        Eng::Node* disk =
-            root->findByName(
-                diskName
-            );
-
-        if (disk == nullptr)
-        {
-            std::cerr
-                << "Unable to find disk: "
-                << diskName
-                << std::endl;
-
-            return false;
-        }
-
-        diskNodes.push_back(disk);
-
-        diskOriginalMatrices.push_back(
-            disk->getLocalMatrix()
-        );
-    }
-
-
-    //////////////////////////
-    // DISK HEIGHT / SPACING //
-    //////////////////////////
-
-    if (diskNodes.size() < 2)
-    {
-        std::cerr
-            << "At least two disks are required"
-            << std::endl;
-
-        return false;
-    }
-
-    glm::vec3 bottomPosition =
-        glm::vec3(
-            diskNodes[
-                HanoiGame::NUM_DISKS - 1
-            ]
-            ->getLocalMatrix()[3]
-        );
-
-    glm::vec3 nextPosition =
-        glm::vec3(
-            diskNodes[
-                HanoiGame::NUM_DISKS - 2
-            ]
-            ->getLocalMatrix()[3]
-        );
-
-    baseDiskHeight =
-        bottomPosition.y;
-
-    diskSpacing =
-        nextPosition.y -
-        bottomPosition.y;
-
-    std::cout
-        << "Base disk height: "
-        << baseDiskHeight
-        << ", spacing: "
-        << diskSpacing
-        << std::endl;
-
-    return true;
-}
+//////////////////////////
+// HANOI GAME FUNCTIONS //
+//////////////////////////
 
 void resetHanoi()
 {
-    // Cancel any running animation:
-    animation.active = false;
-    animation.disk = nullptr;
-    animation.phase = AnimationPhase::NONE;
+    game.reset();
+    hanoiScene.reset();
 
-    // Cancel current disk selection:
-    selectedDiskNode = nullptr;
+    selectedRod = 0;
     sourceRod = -1;
 
-    // Reset logical game state:
-    game.reset();
-
-    // Restore every disk to its original matrix:
-    for (int i = 0; i < HanoiGame::NUM_DISKS; i++)
-    {
-        diskNodes[i]->setLocalMatrix(
-            diskOriginalMatrices[i]
-        );
-    }
-
-    // Select the first rod:
-    selectedRod = 0;
-
-    updateRodSelection();
+    hanoiScene.updateRodSelection(
+        selectedRod
+    );
 
     std::cout
         << "Game reset"
@@ -549,12 +329,12 @@ void resetHanoi()
     game.printState();
 }
 
+
 void undoHanoi()
 {
-    if (animation.active)
+    if (hanoiScene.isAnimating())
         return;
 
-    // Don't undo while a disk is manually selected:
     if (sourceRod != -1)
         return;
 
@@ -569,15 +349,20 @@ void undoHanoi()
         return;
     }
 
-    // Undo means moving the disk back to its original rod.
-    moveDiskNode(
+    int destinationLevel =
+        game.getRodSize(move.from) - 1;
+
+    hanoiScene.moveDisk(
         move.disk,
-        move.from
+        move.from,
+        destinationLevel
     );
 
-    // Follow the destination of the undo with the rod selector:
     selectedRod = move.from;
-    updateRodSelection();
+
+    hanoiScene.updateRodSelection(
+        selectedRod
+    );
 
     std::cout
         << "Undo: Disk_"
@@ -591,9 +376,10 @@ void undoHanoi()
     game.printState();
 }
 
+
 void redoHanoi()
 {
-    if (animation.active)
+    if (hanoiScene.isAnimating())
         return;
 
     if (sourceRod != -1)
@@ -610,13 +396,20 @@ void redoHanoi()
         return;
     }
 
-    moveDiskNode(
+    int destinationLevel =
+        game.getRodSize(move.to) - 1;
+
+    hanoiScene.moveDisk(
         move.disk,
-        move.to
+        move.to,
+        destinationLevel
     );
 
     selectedRod = move.to;
-    updateRodSelection();
+
+    hanoiScene.updateRodSelection(
+        selectedRod
+    );
 
     std::cout
         << "Redo: Disk_"
@@ -630,251 +423,10 @@ void redoHanoi()
     game.printState();
 }
 
-void updateRodSelection()
-{
-    for (
-        int i = 0;
-        i < HanoiGame::NUM_RODS;
-        i++
-        )
-    {
-        glm::mat4 matrix =
-            rodOriginalMatrices[i];
 
-        if (i == selectedRod)
-        {
-            matrix[3][1] +=
-                ROD_SELECTION_HEIGHT;
-        }
-
-        rodNodes[i]
-            ->setLocalMatrix(matrix);
-    }
-}
-
-
-void moveDiskNode(
-    int disk,
-    int destinationRod
-)
-{
-    if (
-        disk < 1 ||
-        disk > HanoiGame::NUM_DISKS
-        )
-    {
-        return;
-    }
-
-    if (
-        destinationRod < 0 ||
-        destinationRod >=
-        HanoiGame::NUM_RODS
-        )
-    {
-        return;
-    }
-
-    Eng::Node* diskNode =
-        diskNodes[disk - 1];
-
-    Eng::Node* rodNode =
-        rodNodes[destinationRod];
-
-    if (
-        diskNode == nullptr ||
-        rodNode == nullptr
-        )
-    {
-        return;
-    }
-
-    glm::mat4 diskMatrix =
-        diskNode->getLocalMatrix();
-
-    glm::mat4 rodMatrix =
-        rodOriginalMatrices[
-            destinationRod
-        ];
-
-    glm::vec3 startPosition =
-        glm::vec3(
-            diskMatrix[3]
-        );
-
-    // Important:
-    // use original rod position, not the
-    // visually lifted selected rod.
-    glm::vec3 rodPosition =
-        glm::vec3(
-            rodMatrix[3]
-        );
-
-    int level =
-        game.getRodSize(
-            destinationRod
-        ) - 1;
-
-    glm::vec3 targetPosition(
-        rodPosition.x,
-        baseDiskHeight +
-        diskSpacing * level,
-        rodPosition.z
-    );
-
-    float liftHeight =
-        baseDiskHeight +
-        diskSpacing *
-        HanoiGame::NUM_DISKS +
-        LIFT_MARGIN;
-
-    animation.active = true;
-    animation.disk = diskNode;
-
-    animation.startPosition =
-        startPosition;
-
-    animation.targetPosition =
-        targetPosition;
-
-    animation.liftHeight =
-        liftHeight;
-
-    animation.phase =
-        AnimationPhase::LIFT;
-}
-
-
-void updateAnimation(
-    float deltaTime
-)
-{
-    if (
-        !animation.active ||
-        animation.disk == nullptr
-        )
-    {
-        return;
-    }
-
-    glm::mat4 matrix =
-        animation.disk
-        ->getLocalMatrix();
-
-    glm::vec3 position =
-        glm::vec3(matrix[3]);
-
-    float movement =
-        DISK_SPEED *
-        deltaTime;
-
-    bool completed =
-        false;
-
-    switch (animation.phase)
-    {
-    case AnimationPhase::LIFT:
-    {
-        position.y += movement;
-
-        if (
-            position.y >=
-            animation.liftHeight
-            )
-        {
-            position.y =
-                animation.liftHeight;
-
-            animation.phase =
-                AnimationPhase::HORIZONTAL;
-        }
-
-        break;
-    }
-
-    case AnimationPhase::HORIZONTAL:
-    {
-        glm::vec3 horizontalTarget(
-            animation.targetPosition.x,
-            animation.liftHeight,
-            animation.targetPosition.z
-        );
-
-        glm::vec3 difference =
-            horizontalTarget -
-            position;
-
-        float distance =
-            glm::length(
-                difference
-            );
-
-        if (distance <= movement)
-        {
-            position =
-                horizontalTarget;
-
-            animation.phase =
-                AnimationPhase::DROP;
-        }
-        else
-        {
-            position +=
-                glm::normalize(
-                    difference
-                ) * movement;
-        }
-
-        break;
-    }
-
-    case AnimationPhase::DROP:
-    {
-        position.y -= movement;
-
-        if (
-            position.y <=
-            animation.targetPosition.y
-            )
-        {
-            position =
-                animation.targetPosition;
-
-            completed = true;
-        }
-
-        break;
-    }
-
-    case AnimationPhase::NONE:
-        return;
-    }
-
-    matrix[3][0] =
-        position.x;
-
-    matrix[3][1] =
-        position.y;
-
-    matrix[3][2] =
-        position.z;
-
-    animation.disk
-        ->setLocalMatrix(matrix);
-
-    if (completed)
-    {
-        animation.active =
-            false;
-
-        animation.disk =
-            nullptr;
-
-        animation.phase =
-            AnimationPhase::NONE;
-    }
-}
-
+/////////////////////
+// DEBUG FUNCTIONS //
+/////////////////////
 
 void printNodePositions(
     Eng::Node* node,
@@ -907,10 +459,8 @@ void printNodePositions(
         << position.z
         << std::endl;
 
-    for (
-        Eng::Node* child :
-        node->getChildren()
-        )
+    for (Eng::Node* child :
+        node->getChildren())
     {
         printNodePositions(
             child,
@@ -994,7 +544,7 @@ int main(
 
     game.init();
 
-    if (!initHanoiNodes())
+    if (!hanoiScene.init(root))
     {
         std::cerr
             << "Unable to initialize Hanoi scene"
@@ -1008,8 +558,9 @@ int main(
         return -1;
     }
 
-    // Visually select first rod:
-    updateRodSelection();
+    hanoiScene.updateRodSelection(
+        selectedRod
+    );
 
     game.printState();
 

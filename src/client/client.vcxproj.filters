@@ -21,12 +21,18 @@
     <ClCompile Include="HanoiGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hanoiScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hanoiGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="move.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hanoiScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

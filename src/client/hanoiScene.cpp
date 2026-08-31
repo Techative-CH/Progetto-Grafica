@@ -1,0 +1,378 @@
+#include "hanoiScene.h"
+
+#include <iostream>
+
+
+bool HanoiScene::init(Eng::Node* root)
+{
+    if (root == nullptr)
+        return false;
+
+    diskNodes.clear();
+    rodNodes.clear();
+    rodOriginalMatrices.clear();
+    diskOriginalMatrices.clear();
+
+    const std::string rodNames[HanoiGame::NUM_RODS] =
+    {
+        "Pole_Left",
+        "Pole_Center",
+        "Pole_Right"
+    };
+
+
+    //////////
+    // RODS //
+    //////////
+
+    for (int i = 0; i < HanoiGame::NUM_RODS; i++)
+    {
+        Eng::Node* rod =
+            root->findByName(rodNames[i]);
+
+        if (rod == nullptr)
+        {
+            std::cerr
+                << "Unable to find rod: "
+                << rodNames[i]
+                << std::endl;
+
+            return false;
+        }
+
+        rodNodes.push_back(rod);
+
+        rodOriginalMatrices.push_back(
+            rod->getLocalMatrix()
+        );
+    }
+
+
+    ///////////
+    // DISKS //
+    ///////////
+
+    for (int i = 1; i <= HanoiGame::NUM_DISKS; i++)
+    {
+        std::string diskName =
+            "Disk_" + std::to_string(i);
+
+        Eng::Node* disk =
+            root->findByName(diskName);
+
+        if (disk == nullptr)
+        {
+            std::cerr
+                << "Unable to find disk: "
+                << diskName
+                << std::endl;
+
+            return false;
+        }
+
+        diskNodes.push_back(disk);
+
+        diskOriginalMatrices.push_back(
+            disk->getLocalMatrix()
+        );
+    }
+
+
+    ///////////////////////////
+    // DISK HEIGHT / SPACING //
+    ///////////////////////////
+
+    if (diskNodes.size() < 2)
+    {
+        std::cerr
+            << "At least two disks are required"
+            << std::endl;
+
+        return false;
+    }
+
+    glm::vec3 bottomPosition =
+        glm::vec3(
+            diskNodes[HanoiGame::NUM_DISKS - 1]
+            ->getLocalMatrix()[3]
+        );
+
+    glm::vec3 nextPosition =
+        glm::vec3(
+            diskNodes[HanoiGame::NUM_DISKS - 2]
+            ->getLocalMatrix()[3]
+        );
+
+    baseDiskHeight =
+        bottomPosition.y;
+
+    diskSpacing =
+        nextPosition.y - bottomPosition.y;
+
+    std::cout
+        << "Base disk height: "
+        << baseDiskHeight
+        << ", spacing: "
+        << diskSpacing
+        << std::endl;
+
+    return true;
+}
+
+
+void HanoiScene::update(float deltaTime)
+{
+    if (!animation.active ||
+        animation.disk == nullptr)
+    {
+        return;
+    }
+
+    glm::mat4 matrix =
+        animation.disk->getLocalMatrix();
+
+    glm::vec3 position =
+        glm::vec3(matrix[3]);
+
+    float movement =
+        DISK_SPEED * deltaTime;
+
+    bool completed = false;
+
+    switch (animation.phase)
+    {
+    case AnimationPhase::LIFT:
+    {
+        position.y += movement;
+
+        if (position.y >= animation.liftHeight)
+        {
+            position.y =
+                animation.liftHeight;
+
+            animation.phase =
+                AnimationPhase::HORIZONTAL;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::HORIZONTAL:
+    {
+        glm::vec3 horizontalTarget(
+            animation.targetPosition.x,
+            animation.liftHeight,
+            animation.targetPosition.z
+        );
+
+        glm::vec3 difference =
+            horizontalTarget - position;
+
+        float distance =
+            glm::length(difference);
+
+        if (distance <= movement)
+        {
+            position =
+                horizontalTarget;
+
+            animation.phase =
+                AnimationPhase::DROP;
+        }
+        else
+        {
+            position +=
+                glm::normalize(difference) *
+                movement;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::DROP:
+    {
+        position.y -= movement;
+
+        if (position.y <=
+            animation.targetPosition.y)
+        {
+            position =
+                animation.targetPosition;
+
+            completed = true;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::NONE:
+        return;
+    }
+
+    matrix[3][0] = position.x;
+    matrix[3][1] = position.y;
+    matrix[3][2] = position.z;
+
+    animation.disk->setLocalMatrix(matrix);
+
+    if (completed)
+    {
+        animation.active = false;
+        animation.disk = nullptr;
+        animation.phase = AnimationPhase::NONE;
+    }
+}
+
+
+void HanoiScene::updateRodSelection(int selectedRod)
+{
+    if (rodNodes.size() != HanoiGame::NUM_RODS)
+        return;
+
+    for (int i = 0; i < HanoiGame::NUM_RODS; i++)
+    {
+        glm::mat4 matrix =
+            rodOriginalMatrices[i];
+
+        if (i == selectedRod)
+        {
+            matrix[3][1] +=
+                ROD_SELECTION_HEIGHT;
+        }
+
+        rodNodes[i]->setLocalMatrix(matrix);
+    }
+}
+
+
+bool HanoiScene::selectDisk(int disk)
+{
+    if (disk < 1 ||
+        disk > HanoiGame::NUM_DISKS)
+    {
+        return false;
+    }
+
+    selectedDiskNode =
+        diskNodes[disk - 1];
+
+    if (selectedDiskNode == nullptr)
+        return false;
+
+    glm::mat4 matrix =
+        selectedDiskNode->getLocalMatrix();
+
+    selectedDiskOriginalPosition =
+        glm::vec3(matrix[3]);
+
+    matrix[3][1] +=
+        SELECTION_HEIGHT;
+
+    selectedDiskNode->setLocalMatrix(matrix);
+
+    return true;
+}
+
+
+void HanoiScene::cancelDiskSelection()
+{
+    if (selectedDiskNode == nullptr)
+        return;
+
+    glm::mat4 matrix =
+        selectedDiskNode->getLocalMatrix();
+
+    matrix[3][0] =
+        selectedDiskOriginalPosition.x;
+
+    matrix[3][1] =
+        selectedDiskOriginalPosition.y;
+
+    matrix[3][2] =
+        selectedDiskOriginalPosition.z;
+
+    selectedDiskNode->setLocalMatrix(matrix);
+
+    selectedDiskNode = nullptr;
+}
+
+
+void HanoiScene::moveDisk(
+    int disk,
+    int destinationRod,
+    int destinationLevel
+)
+{
+    if (disk < 1 ||
+        disk > HanoiGame::NUM_DISKS)
+    {
+        return;
+    }
+
+    if (destinationRod < 0 ||
+        destinationRod >= HanoiGame::NUM_RODS)
+    {
+        return;
+    }
+
+    if (destinationLevel < 0)
+        return;
+
+    Eng::Node* diskNode =
+        diskNodes[disk - 1];
+
+    if (diskNode == nullptr)
+        return;
+
+    glm::mat4 rodMatrix =
+        rodOriginalMatrices[destinationRod];
+
+    glm::vec3 rodPosition =
+        glm::vec3(rodMatrix[3]);
+
+    glm::vec3 targetPosition(
+        rodPosition.x,
+        baseDiskHeight +
+        diskSpacing * destinationLevel,
+        rodPosition.z
+    );
+
+    float liftHeight =
+        baseDiskHeight +
+        diskSpacing * HanoiGame::NUM_DISKS +
+        LIFT_MARGIN;
+
+    animation.active = true;
+    animation.disk = diskNode;
+    animation.targetPosition = targetPosition;
+    animation.liftHeight = liftHeight;
+    animation.phase = AnimationPhase::LIFT;
+
+    // The selected disk is now controlled by the animation.
+    selectedDiskNode = nullptr;
+}
+
+
+void HanoiScene::reset()
+{
+    animation.active = false;
+    animation.disk = nullptr;
+    animation.phase = AnimationPhase::NONE;
+
+    selectedDiskNode = nullptr;
+
+    for (int i = 0;
+        i < HanoiGame::NUM_DISKS;
+        i++)
+    {
+        diskNodes[i]->setLocalMatrix(
+            diskOriginalMatrices[i]
+        );
+    }
+}
+
+
+bool HanoiScene::isAnimating() const
+{
+    return animation.active;
+}
