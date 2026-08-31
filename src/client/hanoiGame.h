@@ -20,6 +20,9 @@ public:
 
     bool isSolved() const;
 
+    int getTopDisk(int rod) const;
+    int getRodSize(int rod) const;
+
     void printState() const;
 
 private:

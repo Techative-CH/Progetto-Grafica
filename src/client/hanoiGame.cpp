@@ -106,6 +106,25 @@ bool HanoiGame::isSolved() const
     return false;
 }
 
+int HanoiGame::getTopDisk(int rod) const
+{
+    if (rod < 0 || rod >= NUM_RODS)
+        return -1;
+
+    if (rods[rod].empty())
+        return -1;
+
+    return rods[rod].back();
+}
+
+int HanoiGame::getRodSize(int rod) const
+{
+    if (rod < 0 || rod >= NUM_RODS)
+        return 0;
+
+    return static_cast<int>(rods[rod].size());
+}
+
 void HanoiGame::printState() const
 {
     for (int i = 0; i < NUM_RODS; i++)
