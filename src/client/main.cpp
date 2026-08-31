@@ -40,6 +40,14 @@ int sourceRod = -1;
 std::chrono::steady_clock::time_point lastFrameTime =
 std::chrono::steady_clock::now();
 
+// Sun animation
+Eng::Node* sunNode = nullptr;
+glm::mat4 sunOriginalMatrix;
+
+float sunAngle = 0.0f;
+
+constexpr float SUN_ROTATION_SPEED = 15.0f;
+
 
 /////////////////////////
 // FUNCTION PROTOTYPES //
@@ -52,6 +60,12 @@ void redoHanoi();
 void printNodePositions(
     Eng::Node* node,
     int depth = 0
+);
+
+bool initSun();
+
+void updateSun(
+    float deltaTime
 );
 
 
@@ -72,6 +86,7 @@ void displayCallback()
     lastFrameTime = currentTime;
 
     hanoiScene.update(deltaTime);
+    updateSun(deltaTime);
 
     Eng::Base& eng =
         Eng::Base::getInstance();
@@ -423,6 +438,56 @@ void redoHanoi()
     game.printState();
 }
 
+bool initSun()
+{
+    sunNode =
+        root->findByName(
+            "Sun"
+        );
+
+    if (sunNode == nullptr)
+    {
+        std::cerr
+            << "Unable to find Sun"
+            << std::endl;
+
+        return false;
+    }
+
+    sunOriginalMatrix =
+        sunNode->getLocalMatrix();
+
+    return true;
+}
+
+void updateSun(
+    float deltaTime
+)
+{
+    if (sunNode == nullptr)
+        return;
+
+    sunAngle +=
+        SUN_ROTATION_SPEED *
+        deltaTime;
+
+    if (sunAngle >= 360.0f)
+    {
+        sunAngle -= 360.0f;
+    }
+
+    glm::mat4 rotation =
+        glm::rotate(
+            glm::mat4(1.0f),
+            glm::radians(sunAngle),
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+
+    sunNode->setLocalMatrix(
+        sunOriginalMatrix *
+        rotation
+    );
+}
 
 /////////////////////
 // DEBUG FUNCTIONS //
@@ -537,6 +602,16 @@ int main(
         << "OVO loaded successfully"
         << std::endl;
 
+    /////////
+    // SUN //
+    /////////
+
+    if (!initSun())
+    {
+        std::cerr
+            << "Unable to initialize Sun"
+            << std::endl;
+    }
 
     /////////////////////
     // INIT HANOI GAME //
