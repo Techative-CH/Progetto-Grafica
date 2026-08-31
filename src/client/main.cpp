@@ -18,9 +18,37 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
 
 // Hanoi Game
 #include "hanoiGame.h"
+
+
+/////////////////////////
+// ANIMATION STRUCTURES //
+/////////////////////////
+
+enum class AnimationPhase
+{
+    NONE,
+    LIFT,
+    HORIZONTAL,
+    DROP
+};
+
+struct DiskAnimation
+{
+    bool active = false;
+
+    Eng::Node* disk = nullptr;
+
+    glm::vec3 startPosition;
+    glm::vec3 targetPosition;
+
+    float liftHeight = 0.0f;
+
+    AnimationPhase phase = AnimationPhase::NONE;
+};
 
 
 //////////////////////
@@ -35,6 +63,7 @@ HanoiGame game;
 
 std::vector<Eng::Node*> diskNodes;
 std::vector<Eng::Node*> rodNodes;
+std::vector<glm::mat4> rodOriginalMatrices;
 
 const std::string rodNames[HanoiGame::NUM_RODS] =
 {
@@ -49,14 +78,41 @@ float baseDiskHeight = 0.0f;
 int selectedRod = 0;
 int sourceRod = -1;
 
+Eng::Node* selectedDiskNode = nullptr;
+glm::vec3 selectedDiskOriginalPosition;
+
+DiskAnimation animation;
+
+std::chrono::steady_clock::time_point lastFrameTime =
+std::chrono::steady_clock::now();
+
+constexpr float DISK_SPEED = 150.0f;
+constexpr float LIFT_MARGIN = 15.0f;
+constexpr float SELECTION_HEIGHT = 4.0f;
+constexpr float ROD_SELECTION_HEIGHT = 4.0f;
+
 
 /////////////////////////
 // FUNCTION PROTOTYPES //
 /////////////////////////
 
 bool initHanoiNodes();
-void moveDiskNode(int disk, int destinationRod);
-void printNodePositions(Eng::Node* node, int depth = 0);
+
+void moveDiskNode(
+    int disk,
+    int destinationRod
+);
+
+void updateAnimation(
+    float deltaTime
+);
+
+void updateRodSelection();
+
+void printNodePositions(
+    Eng::Node* node,
+    int depth = 0
+);
 
 
 ////////////////////////
@@ -65,12 +121,26 @@ void printNodePositions(Eng::Node* node, int depth = 0);
 
 void displayCallback()
 {
-    Eng::Base& eng = Eng::Base::getInstance();
+    auto currentTime =
+        std::chrono::steady_clock::now();
+
+    float deltaTime =
+        std::chrono::duration<float>(
+            currentTime - lastFrameTime
+        ).count();
+
+    lastFrameTime = currentTime;
+
+    updateAnimation(deltaTime);
+
+    Eng::Base& eng =
+        Eng::Base::getInstance();
 
     eng.clearWindow();
     eng.loadIdentity();
 
-    if (root != nullptr && renderList != nullptr)
+    if (root != nullptr &&
+        renderList != nullptr)
     {
         renderList->pass(root);
         eng.render(renderList);
@@ -83,17 +153,27 @@ void displayCallback()
 }
 
 
-void reshapeCallback(int width, int height)
+void reshapeCallback(
+    int width,
+    int height
+)
 {
-    Eng::Base& eng = Eng::Base::getInstance();
+    Eng::Base& eng =
+        Eng::Base::getInstance();
 
-    eng.setViewport(0, 0, width, height);
+    eng.setViewport(
+        0,
+        0,
+        width,
+        height
+    );
 
     if (camera != nullptr)
     {
         camera->setPerspective(
             75.0f,
-            static_cast<float>(width) / static_cast<float>(height),
+            static_cast<float>(width) /
+            static_cast<float>(height),
             0.1f,
             1000.0f
         );
@@ -101,7 +181,11 @@ void reshapeCallback(int width, int height)
 }
 
 
-void keyboardCallback(unsigned char key, int mouseX, int mouseY)
+void keyboardCallback(
+    unsigned char key,
+    int mouseX,
+    int mouseY
+)
 {
     switch (key)
     {
@@ -110,27 +194,69 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
         break;
 
     case ' ':
+        // No new move while animation is running:
+        if (animation.active)
+            break;
+
         if (sourceRod == -1)
         {
-            // Pick up:
-            if (game.getTopDisk(selectedRod) != -1)
+            //////////////////
+            // PICK UP DISK //
+            //////////////////
+
+            int disk =
+                game.getTopDisk(selectedRod);
+
+            if (disk != -1)
             {
                 sourceRod = selectedRod;
 
+                selectedDiskNode =
+                    diskNodes[disk - 1];
+
+                glm::mat4 matrix =
+                    selectedDiskNode
+                    ->getLocalMatrix();
+
+                selectedDiskOriginalPosition =
+                    glm::vec3(matrix[3]);
+
+                // Slightly lift selected disk:
+                matrix[3][1] +=
+                    SELECTION_HEIGHT;
+
+                selectedDiskNode
+                    ->setLocalMatrix(matrix);
+
                 std::cout
-                    << "Selected source rod: "
+                    << "Selected Disk_"
+                    << disk
+                    << " from rod "
                     << sourceRod
                     << std::endl;
             }
         }
         else
         {
-            // Drop:
-            int disk = game.getTopDisk(sourceRod);
+            ///////////////
+            // DROP DISK //
+            ///////////////
 
-            if (game.moveDisk(sourceRod, selectedRod))
+            int disk =
+                game.getTopDisk(sourceRod);
+
+            if (game.moveDisk(
+                sourceRod,
+                selectedRod
+            ))
             {
-                moveDiskNode(disk, selectedRod);
+                moveDiskNode(
+                    disk,
+                    selectedRod
+                );
+
+                selectedDiskNode =
+                    nullptr;
 
                 std::cout
                     << "Moved Disk_"
@@ -152,6 +278,32 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
             }
             else
             {
+                //////////////////
+                // INVALID MOVE //
+                //////////////////
+
+                if (selectedDiskNode != nullptr)
+                {
+                    glm::mat4 matrix =
+                        selectedDiskNode
+                        ->getLocalMatrix();
+
+                    matrix[3][0] =
+                        selectedDiskOriginalPosition.x;
+
+                    matrix[3][1] =
+                        selectedDiskOriginalPosition.y;
+
+                    matrix[3][2] =
+                        selectedDiskOriginalPosition.z;
+
+                    selectedDiskNode
+                        ->setLocalMatrix(matrix);
+
+                    selectedDiskNode =
+                        nullptr;
+                }
+
                 std::cout
                     << "Invalid move"
                     << std::endl;
@@ -163,11 +315,16 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
         break;
     }
 
-    Eng::Base::getInstance().postRedisplay();
+    Eng::Base::getInstance()
+        .postRedisplay();
 }
 
 
-void specialCallback(int key, int mouseX, int mouseY)
+void specialCallback(
+    int key,
+    int mouseX,
+    int mouseY
+)
 {
     switch (key)
     {
@@ -175,41 +332,65 @@ void specialCallback(int key, int mouseX, int mouseY)
         selectedRod--;
 
         if (selectedRod < 0)
-            selectedRod = HanoiGame::NUM_RODS - 1;
+        {
+            selectedRod =
+                HanoiGame::NUM_RODS - 1;
+        }
 
         break;
 
     case 102: // Right arrow
         selectedRod++;
 
-        if (selectedRod >= HanoiGame::NUM_RODS)
+        if (selectedRod >=
+            HanoiGame::NUM_RODS)
+        {
             selectedRod = 0;
+        }
 
         break;
+
+    default:
+        return;
     }
+
+    updateRodSelection();
 
     std::cout
         << "Selected rod: "
         << selectedRod
         << std::endl;
 
-    Eng::Base::getInstance().postRedisplay();
+    Eng::Base::getInstance()
+        .postRedisplay();
 }
 
 
-//////////////////////////
+///////////////////////////
 // HANOI SCENE FUNCTIONS //
-//////////////////////////
+///////////////////////////
 
 bool initHanoiNodes()
 {
     diskNodes.clear();
     rodNodes.clear();
+    rodOriginalMatrices.clear();
 
-    // Rods:
-    for (int i = 0; i < HanoiGame::NUM_RODS; i++)
+
+    //////////
+    // RODS //
+    //////////
+
+    for (
+        int i = 0;
+        i < HanoiGame::NUM_RODS;
+        i++
+        )
     {
-        Eng::Node* rod = root->findByName(rodNames[i]);
+        Eng::Node* rod =
+            root->findByName(
+                rodNames[i]
+            );
 
         if (rod == nullptr)
         {
@@ -222,15 +403,31 @@ bool initHanoiNodes()
         }
 
         rodNodes.push_back(rod);
+
+        rodOriginalMatrices.push_back(
+            rod->getLocalMatrix()
+        );
     }
 
-    // Disks:
-    for (int i = 1; i <= HanoiGame::NUM_DISKS; i++)
+
+    ///////////
+    // DISKS //
+    ///////////
+
+    for (
+        int i = 1;
+        i <= HanoiGame::NUM_DISKS;
+        i++
+        )
     {
         std::string diskName =
-            "Disk_" + std::to_string(i);
+            "Disk_" +
+            std::to_string(i);
 
-        Eng::Node* disk = root->findByName(diskName);
+        Eng::Node* disk =
+            root->findByName(
+                diskName
+            );
 
         if (disk == nullptr)
         {
@@ -245,7 +442,11 @@ bool initHanoiNodes()
         diskNodes.push_back(disk);
     }
 
-    // At least two disks are required to calculate the vertical spacing:
+
+    //////////////////////////
+    // DISK HEIGHT / SPACING //
+    //////////////////////////
+
     if (diskNodes.size() < 2)
     {
         std::cerr
@@ -255,19 +456,28 @@ bool initHanoiNodes()
         return false;
     }
 
-    // Calculate disk height and spacing dynamically:
-    glm::vec3 bottomPosition = glm::vec3(
-        diskNodes[HanoiGame::NUM_DISKS - 1]
-        ->getLocalMatrix()[3]
-    );
+    glm::vec3 bottomPosition =
+        glm::vec3(
+            diskNodes[
+                HanoiGame::NUM_DISKS - 1
+            ]
+            ->getLocalMatrix()[3]
+        );
 
-    glm::vec3 nextPosition = glm::vec3(
-        diskNodes[HanoiGame::NUM_DISKS - 2]
-        ->getLocalMatrix()[3]
-    );
+    glm::vec3 nextPosition =
+        glm::vec3(
+            diskNodes[
+                HanoiGame::NUM_DISKS - 2
+            ]
+            ->getLocalMatrix()[3]
+        );
 
-    baseDiskHeight = bottomPosition.y;
-    diskSpacing = nextPosition.y - bottomPosition.y;
+    baseDiskHeight =
+        bottomPosition.y;
+
+    diskSpacing =
+        nextPosition.y -
+        bottomPosition.y;
 
     std::cout
         << "Base disk height: "
@@ -280,45 +490,262 @@ bool initHanoiNodes()
 }
 
 
-void moveDiskNode(int disk, int destinationRod)
+void updateRodSelection()
 {
-    if (disk < 1 || disk > HanoiGame::NUM_DISKS)
-        return;
+    for (
+        int i = 0;
+        i < HanoiGame::NUM_RODS;
+        i++
+        )
+    {
+        glm::mat4 matrix =
+            rodOriginalMatrices[i];
 
-    if (destinationRod < 0 || destinationRod >= HanoiGame::NUM_RODS)
-        return;
+        if (i == selectedRod)
+        {
+            matrix[3][1] +=
+                ROD_SELECTION_HEIGHT;
+        }
 
-    Eng::Node* diskNode = diskNodes[disk - 1];
-    Eng::Node* rodNode = rodNodes[destinationRod];
-
-    if (diskNode == nullptr || rodNode == nullptr)
-        return;
-
-    glm::mat4 diskMatrix = diskNode->getLocalMatrix();
-    glm::mat4 rodMatrix = rodNode->getLocalMatrix();
-
-    // Rod position in Hanoi local coordinates:
-    glm::vec3 rodPosition = glm::vec3(rodMatrix[3]);
-
-    // moveDisk() has already updated the logical state,
-    // therefore the destination rod already contains this disk.
-    int level = game.getRodSize(destinationRod) - 1;
-
-    // Preserve the disk rotation/scale and modify only its position:
-    diskMatrix[3][0] = rodPosition.x;
-    diskMatrix[3][1] = baseDiskHeight + diskSpacing * level;
-    diskMatrix[3][2] = rodPosition.z;
-
-    diskNode->setLocalMatrix(diskMatrix);
+        rodNodes[i]
+            ->setLocalMatrix(matrix);
+    }
 }
 
 
-void printNodePositions(Eng::Node* node, int depth)
+void moveDiskNode(
+    int disk,
+    int destinationRod
+)
+{
+    if (
+        disk < 1 ||
+        disk > HanoiGame::NUM_DISKS
+        )
+    {
+        return;
+    }
+
+    if (
+        destinationRod < 0 ||
+        destinationRod >=
+        HanoiGame::NUM_RODS
+        )
+    {
+        return;
+    }
+
+    Eng::Node* diskNode =
+        diskNodes[disk - 1];
+
+    Eng::Node* rodNode =
+        rodNodes[destinationRod];
+
+    if (
+        diskNode == nullptr ||
+        rodNode == nullptr
+        )
+    {
+        return;
+    }
+
+    glm::mat4 diskMatrix =
+        diskNode->getLocalMatrix();
+
+    glm::mat4 rodMatrix =
+        rodOriginalMatrices[
+            destinationRod
+        ];
+
+    glm::vec3 startPosition =
+        glm::vec3(
+            diskMatrix[3]
+        );
+
+    // Important:
+    // use original rod position, not the
+    // visually lifted selected rod.
+    glm::vec3 rodPosition =
+        glm::vec3(
+            rodMatrix[3]
+        );
+
+    int level =
+        game.getRodSize(
+            destinationRod
+        ) - 1;
+
+    glm::vec3 targetPosition(
+        rodPosition.x,
+        baseDiskHeight +
+        diskSpacing * level,
+        rodPosition.z
+    );
+
+    float liftHeight =
+        baseDiskHeight +
+        diskSpacing *
+        HanoiGame::NUM_DISKS +
+        LIFT_MARGIN;
+
+    animation.active = true;
+    animation.disk = diskNode;
+
+    animation.startPosition =
+        startPosition;
+
+    animation.targetPosition =
+        targetPosition;
+
+    animation.liftHeight =
+        liftHeight;
+
+    animation.phase =
+        AnimationPhase::LIFT;
+}
+
+
+void updateAnimation(
+    float deltaTime
+)
+{
+    if (
+        !animation.active ||
+        animation.disk == nullptr
+        )
+    {
+        return;
+    }
+
+    glm::mat4 matrix =
+        animation.disk
+        ->getLocalMatrix();
+
+    glm::vec3 position =
+        glm::vec3(matrix[3]);
+
+    float movement =
+        DISK_SPEED *
+        deltaTime;
+
+    bool completed =
+        false;
+
+    switch (animation.phase)
+    {
+    case AnimationPhase::LIFT:
+    {
+        position.y += movement;
+
+        if (
+            position.y >=
+            animation.liftHeight
+            )
+        {
+            position.y =
+                animation.liftHeight;
+
+            animation.phase =
+                AnimationPhase::HORIZONTAL;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::HORIZONTAL:
+    {
+        glm::vec3 horizontalTarget(
+            animation.targetPosition.x,
+            animation.liftHeight,
+            animation.targetPosition.z
+        );
+
+        glm::vec3 difference =
+            horizontalTarget -
+            position;
+
+        float distance =
+            glm::length(
+                difference
+            );
+
+        if (distance <= movement)
+        {
+            position =
+                horizontalTarget;
+
+            animation.phase =
+                AnimationPhase::DROP;
+        }
+        else
+        {
+            position +=
+                glm::normalize(
+                    difference
+                ) * movement;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::DROP:
+    {
+        position.y -= movement;
+
+        if (
+            position.y <=
+            animation.targetPosition.y
+            )
+        {
+            position =
+                animation.targetPosition;
+
+            completed = true;
+        }
+
+        break;
+    }
+
+    case AnimationPhase::NONE:
+        return;
+    }
+
+    matrix[3][0] =
+        position.x;
+
+    matrix[3][1] =
+        position.y;
+
+    matrix[3][2] =
+        position.z;
+
+    animation.disk
+        ->setLocalMatrix(matrix);
+
+    if (completed)
+    {
+        animation.active =
+            false;
+
+        animation.disk =
+            nullptr;
+
+        animation.phase =
+            AnimationPhase::NONE;
+    }
+}
+
+
+void printNodePositions(
+    Eng::Node* node,
+    int depth
+)
 {
     if (!node)
         return;
 
-    glm::mat4 world = node->getWorldMatrix();
+    glm::mat4 world =
+        node->getWorldMatrix();
 
     glm::vec3 position(
         world[3][0],
@@ -327,16 +754,29 @@ void printNodePositions(Eng::Node* node, int depth)
     );
 
     std::cout
-        << std::string(depth * 2, ' ')
+        << std::string(
+            depth * 2,
+            ' '
+        )
         << node->getName()
         << " -> "
-        << position.x << ", "
-        << position.y << ", "
+        << position.x
+        << ", "
+        << position.y
+        << ", "
         << position.z
         << std::endl;
 
-    for (Eng::Node* child : node->getChildren())
-        printNodePositions(child, depth + 1);
+    for (
+        Eng::Node* child :
+        node->getChildren()
+        )
+    {
+        printNodePositions(
+            child,
+            depth + 1
+        );
+    }
 }
 
 
@@ -350,14 +790,18 @@ void printNodePositions(Eng::Node* node, int depth)
  * @param argv array containing up to argc passed arguments
  * @return error code (0 on success, error code otherwise)
  */
-int main(int argc, char* argv[])
+int main(
+    int argc,
+    char* argv[]
+)
 {
     std::cout
         << "Client - Tower of Hanoi, S. Banfi (C) SUPSI"
         << std::endl
         << std::endl;
 
-    Eng::Base& eng = Eng::Base::getInstance();
+    Eng::Base& eng =
+        Eng::Base::getInstance();
 
 
     ///////////////////////////
@@ -381,7 +825,10 @@ int main(int argc, char* argv[])
     // LOAD OVO SCENE //
     ////////////////////
 
-    root = eng.load("assets/hanoi/hanoi.ovo");
+    root =
+        eng.load(
+            "assets/hanoi/hanoi.ovo"
+        );
 
     if (root == nullptr)
     {
@@ -421,6 +868,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    // Visually select first rod:
+    updateRodSelection();
+
     game.printState();
 
 
@@ -428,7 +878,8 @@ int main(int argc, char* argv[])
     // BUILD RENDER LIST //
     ///////////////////////
 
-    renderList = eng.buildList(root);
+    renderList =
+        eng.buildList(root);
 
     if (renderList == nullptr)
     {
@@ -446,7 +897,9 @@ int main(int argc, char* argv[])
 
     std::cout
         << "Render elements: "
-        << renderList->getElements().size()
+        << renderList
+        ->getElements()
+        .size()
         << std::endl;
 
 
@@ -454,7 +907,10 @@ int main(int argc, char* argv[])
     // CAMERA //
     ////////////
 
-    camera = new Eng::Camera("MainCamera");
+    camera =
+        new Eng::Camera(
+            "MainCamera"
+        );
 
     glm::vec3 cameraPosition(
         -36.0f,
@@ -468,11 +924,16 @@ int main(int argc, char* argv[])
         12.0f
     );
 
-    glm::mat4 view = glm::lookAt(
-        cameraPosition,
-        cameraTarget,
-        glm::vec3(0.0f, 1.0f, 0.0f)
-    );
+    glm::mat4 view =
+        glm::lookAt(
+            cameraPosition,
+            cameraTarget,
+            glm::vec3(
+                0.0f,
+                1.0f,
+                0.0f
+            )
+        );
 
     camera->setLocalMatrix(
         glm::inverse(view)
@@ -492,10 +953,21 @@ int main(int argc, char* argv[])
     // CALLBACKS //
     ///////////////
 
-    eng.setDisplayCallback(displayCallback);
-    eng.setReshapeCallback(reshapeCallback);
-    eng.setKeyboardCallback(keyboardCallback);
-    eng.setSpecialCallback(specialCallback);
+    eng.setDisplayCallback(
+        displayCallback
+    );
+
+    eng.setReshapeCallback(
+        reshapeCallback
+    );
+
+    eng.setKeyboardCallback(
+        keyboardCallback
+    );
+
+    eng.setSpecialCallback(
+        specialCallback
+    );
 
 
     /////////////////////
