@@ -14,7 +14,7 @@ public:
     bool isMoveValid(int from, int to) const;
     bool moveDisk(int from, int to);
 
-    void undo();
+    bool undo(Move& move);
     void redo();
     void reset();
 

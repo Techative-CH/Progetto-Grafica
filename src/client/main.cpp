@@ -64,6 +64,7 @@ HanoiGame game;
 std::vector<Eng::Node*> diskNodes;
 std::vector<Eng::Node*> rodNodes;
 std::vector<glm::mat4> rodOriginalMatrices;
+std::vector<glm::mat4> diskOriginalMatrices;
 
 const std::string rodNames[HanoiGame::NUM_RODS] =
 {
@@ -97,6 +98,10 @@ constexpr float ROD_SELECTION_HEIGHT = 4.0f;
 /////////////////////////
 
 bool initHanoiNodes();
+
+void resetHanoi();
+
+void undoHanoi();
 
 void moveDiskNode(
     int disk,
@@ -313,6 +318,16 @@ void keyboardCallback(
         }
 
         break;
+
+    case 'r':
+    case 'R':
+        resetHanoi();
+        break;
+
+    case 'z':
+    case 'Z':
+        undoHanoi();
+        break;
     }
 
     Eng::Base::getInstance()
@@ -375,7 +390,7 @@ bool initHanoiNodes()
     diskNodes.clear();
     rodNodes.clear();
     rodOriginalMatrices.clear();
-
+    diskOriginalMatrices.clear();
 
     //////////
     // RODS //
@@ -440,6 +455,10 @@ bool initHanoiNodes()
         }
 
         diskNodes.push_back(disk);
+
+        diskOriginalMatrices.push_back(
+            disk->getLocalMatrix()
+        );
     }
 
 
@@ -489,6 +508,81 @@ bool initHanoiNodes()
     return true;
 }
 
+void resetHanoi()
+{
+    // Cancel any running animation:
+    animation.active = false;
+    animation.disk = nullptr;
+    animation.phase = AnimationPhase::NONE;
+
+    // Cancel current disk selection:
+    selectedDiskNode = nullptr;
+    sourceRod = -1;
+
+    // Reset logical game state:
+    game.reset();
+
+    // Restore every disk to its original matrix:
+    for (int i = 0; i < HanoiGame::NUM_DISKS; i++)
+    {
+        diskNodes[i]->setLocalMatrix(
+            diskOriginalMatrices[i]
+        );
+    }
+
+    // Select the first rod:
+    selectedRod = 0;
+
+    updateRodSelection();
+
+    std::cout
+        << "Game reset"
+        << std::endl;
+
+    game.printState();
+}
+
+void undoHanoi()
+{
+    if (animation.active)
+        return;
+
+    // Don't undo while a disk is manually selected:
+    if (sourceRod != -1)
+        return;
+
+    Move move;
+
+    if (!game.undo(move))
+    {
+        std::cout
+            << "Nothing to undo"
+            << std::endl;
+
+        return;
+    }
+
+    // Undo means moving the disk back to its original rod.
+    moveDiskNode(
+        move.disk,
+        move.from
+    );
+
+    // Follow the destination of the undo with the rod selector:
+    selectedRod = move.from;
+    updateRodSelection();
+
+    std::cout
+        << "Undo: Disk_"
+        << move.disk
+        << " from rod "
+        << move.to
+        << " to rod "
+        << move.from
+        << std::endl;
+
+    game.printState();
+}
 
 void updateRodSelection()
 {
