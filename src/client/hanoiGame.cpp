@@ -67,18 +67,20 @@ bool HanoiGame::undo(Move& move)
     return true;
 }
 
-void HanoiGame::redo()
+bool HanoiGame::redo(Move& move)
 {
     if (redoStack.empty())
-        return;
+        return false;
 
-    Move move = redoStack.back();
+    move = redoStack.back();
     redoStack.pop_back();
 
     rods[move.from].pop_back();
     rods[move.to].push_back(move.disk);
 
     undoStack.push_back(move);
+
+    return true;
 }
 
 void HanoiGame::reset()

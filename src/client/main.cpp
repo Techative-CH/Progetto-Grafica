@@ -103,6 +103,8 @@ void resetHanoi();
 
 void undoHanoi();
 
+void redoHanoi();
+
 void moveDiskNode(
     int disk,
     int destinationRod
@@ -327,6 +329,11 @@ void keyboardCallback(
     case 'z':
     case 'Z':
         undoHanoi();
+        break;
+
+    case 'y':
+    case 'Y':
+        redoHanoi();
         break;
     }
 
@@ -579,6 +586,45 @@ void undoHanoi()
         << move.to
         << " to rod "
         << move.from
+        << std::endl;
+
+    game.printState();
+}
+
+void redoHanoi()
+{
+    if (animation.active)
+        return;
+
+    if (sourceRod != -1)
+        return;
+
+    Move move;
+
+    if (!game.redo(move))
+    {
+        std::cout
+            << "Nothing to redo"
+            << std::endl;
+
+        return;
+    }
+
+    moveDiskNode(
+        move.disk,
+        move.to
+    );
+
+    selectedRod = move.to;
+    updateRodSelection();
+
+    std::cout
+        << "Redo: Disk_"
+        << move.disk
+        << " from rod "
+        << move.from
+        << " to rod "
+        << move.to
         << std::endl;
 
     game.printState();

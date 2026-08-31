@@ -15,7 +15,7 @@ public:
     bool moveDisk(int from, int to);
 
     bool undo(Move& move);
-    void redo();
+    bool redo(Move& move);
     void reset();
 
     bool isSolved() const;
