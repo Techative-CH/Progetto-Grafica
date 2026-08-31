@@ -29,6 +29,17 @@ Eng::Node* root = nullptr;
 Eng::List* renderList = nullptr;
 Eng::Camera* camera = nullptr;
 
+HanoiGame game;
+
+std::vector<Eng::Node*> diskNodes;
+std::vector<Eng::Node*> rodNodes;
+
+const std::string rodNames[HanoiGame::NUM_RODS] =
+{
+    "Pole_Left",
+    "Pole_Center",
+    "Pole_Right"
+};
 
 ////////////////////////
 // CALLBACK FUNCTIONS //
@@ -91,6 +102,53 @@ void specialCallback(int key, int mouseX, int mouseY)
         << "Special key pressed: "
         << key
         << std::endl;
+}
+
+bool initHanoiNodes()
+{
+    diskNodes.clear();
+    rodNodes.clear();
+
+    // Rods
+    for (int i = 0; i < HanoiGame::NUM_RODS; i++)
+    {
+        Eng::Node* rod = root->findByName(rodNames[i]);
+
+        if (rod == nullptr)
+        {
+            std::cerr
+                << "Unable to find rod: "
+                << rodNames[i]
+                << std::endl;
+
+            return false;
+        }
+
+        rodNodes.push_back(rod);
+    }
+
+    // Disks
+    for (int i = 1; i <= HanoiGame::NUM_DISKS; i++)
+    {
+        std::string diskName =
+            "Disk_" + std::to_string(i);
+
+        Eng::Node* disk = root->findByName(diskName);
+
+        if (disk == nullptr)
+        {
+            std::cerr
+                << "Unable to find disk: "
+                << diskName
+                << std::endl;
+
+            return false;
+        }
+
+        diskNodes.push_back(disk);
+    }
+
+    return true;
 }
 
 void printNodePositions(Eng::Node* node, int depth = 0)
@@ -161,7 +219,7 @@ int main(int argc, char* argv[])
     // LOAD OVO SCENE //
     ////////////////////
 
-    root = eng.load("assets/simple3dScene.ovo");
+    root = eng.load("assets/hanoi/hanoi.ovo");
 
     if (root == nullptr)
     {
@@ -179,6 +237,27 @@ int main(int argc, char* argv[])
     std::cout
         << "OVO loaded successfully"
         << std::endl;
+
+    /////////////////////
+    // INIT HANOI GAME //
+    /////////////////////
+
+    if (!initHanoiNodes())
+    {
+        std::cerr
+            << "Unable to initialize Hanoi scene"
+            << std::endl;
+
+        delete root;
+        root = nullptr;
+
+        eng.free();
+
+        return -1;
+    }
+
+    game.init();
+    game.printState();
 
     ///////////////////////
     // BUILD RENDER LIST //
@@ -211,18 +290,19 @@ int main(int argc, char* argv[])
 
     camera = new Eng::Camera("MainCamera");
 
+    glm::vec3 cameraPosition(-36.0f, 39.0f, 60.0f);
+    glm::vec3 cameraTarget(-40.0f, 18.0f, 12.0f);
+
     glm::mat4 view = glm::lookAt(
-        glm::vec3(250.0f, 180.0f, 300.0f),  // posizione camera
-        glm::vec3(25.0f, 40.0f, -35.0f),    // punto osservato
-        glm::vec3(0.0f, 1.0f, 0.0f)         // up
+        cameraPosition,
+        cameraTarget,
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    camera->setLocalMatrix(
-        glm::inverse(view)
-    );
+    camera->setLocalMatrix(glm::inverse(view));
 
     camera->setPerspective(
-        45.0f,
+        75.0f,
         800.0f / 600.0f,
         0.1f,
         1000.0f

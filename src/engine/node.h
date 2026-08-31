@@ -24,6 +24,8 @@ namespace Eng {
 		glm::mat4 getLocalMatrix() const;
 		glm::mat4 getWorldMatrix() const;
 
+		Node* findByName(const std::string& name);
+
 		virtual void render();
 
 	private:

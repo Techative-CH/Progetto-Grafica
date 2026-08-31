@@ -54,7 +54,22 @@ glm::mat4 Eng::Node::getWorldMatrix() const
 	return getLocalMatrix();
 }
 
+Eng::Node* Eng::Node::findByName(const std::string& name)
+{
+	if (getName() == name)
+		return this;
+
+	for (Node* child : children)
+	{
+		Node* result = child->findByName(name);
+
+		if (result != nullptr)
+			return result;
+	}
+
+	return nullptr;
+}
+
 void Eng::Node::render()
 {
-
 }

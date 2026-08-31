@@ -5,17 +5,10 @@
 
 class HanoiGame
 {
-private:
-    static const int NUM_RODS = 3;
-    static const int NUM_DISKS = 3;
-
-    std::vector<int> rods[NUM_RODS];
-    std::vector<Move> undoStack;
-    std::vector<Move> redoStack;
-
-    bool initialized = false;
-
 public:
+    static const int NUM_RODS = 3;
+    static const int NUM_DISKS = 5;
+
     void init();
 
     bool isMoveValid(int from, int to) const;
@@ -28,4 +21,11 @@ public:
     bool isSolved() const;
 
     void printState() const;
+
+private:
+    std::vector<int> rods[NUM_RODS];
+    std::vector<Move> undoStack;
+    std::vector<Move> redoStack;
+
+    bool initialized = false;
 };
