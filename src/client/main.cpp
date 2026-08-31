@@ -17,6 +17,7 @@
 // C/C++:
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 // Hanoi:
 #include "hanoiGame.h"
@@ -29,18 +30,53 @@
 
 Eng::Node* root = nullptr;
 Eng::List* renderList = nullptr;
-Eng::Camera* camera = nullptr;
 
+
+// Cameras:
+Eng::Camera* camera = nullptr;
+Eng::Camera* secondaryCamera = nullptr;
+
+unsigned int currentCameraIndex = 0;
+
+
+// Secondary camera orbit:
+glm::vec3 secondaryCameraTarget(
+    -40.0f,
+    25.0f,
+    0.0f
+);
+
+constexpr float SECONDARY_CAMERA_RADIUS = 137.3f;
+constexpr float SECONDARY_CAMERA_HEIGHT = 85.0f;
+
+constexpr float SECONDARY_CAMERA_START_ANGLE = 10.5f;
+
+constexpr float SECONDARY_CAMERA_MIN_ANGLE =
+SECONDARY_CAMERA_START_ANGLE - 45.0f;
+
+constexpr float SECONDARY_CAMERA_MAX_ANGLE =
+SECONDARY_CAMERA_START_ANGLE + 90.0f;
+
+constexpr float SECONDARY_CAMERA_ANGLE_STEP = 1.0f;
+
+float secondaryCameraAngle =
+SECONDARY_CAMERA_START_ANGLE;
+
+
+// Hanoi:
 HanoiGame game;
 HanoiScene hanoiScene;
 
 int selectedRod = 0;
 int sourceRod = -1;
 
+
+// Frame time:
 std::chrono::steady_clock::time_point lastFrameTime =
 std::chrono::steady_clock::now();
 
-// Sun animation
+
+// Sun animation:
 Eng::Node* sunNode = nullptr;
 glm::mat4 sunOriginalMatrix;
 
@@ -66,6 +102,14 @@ bool initSun();
 
 void updateSun(
     float deltaTime
+);
+
+void switchCamera();
+
+void updateSecondaryCamera();
+
+void moveSecondaryCamera(
+    float angleDelta
 );
 
 
@@ -121,12 +165,16 @@ void reshapeCallback(
         height
     );
 
-    if (camera != nullptr)
+    float aspect =
+        static_cast<float>(width) /
+        static_cast<float>(height);
+
+    for (Eng::Camera* camera :
+        eng.getCameras())
     {
         camera->setPerspective(
             75.0f,
-            static_cast<float>(width) /
-            static_cast<float>(height),
+            aspect,
             0.1f,
             1000.0f
         );
@@ -160,7 +208,9 @@ void keyboardCallback(
         {
             // Pick up:
             int disk =
-                game.getTopDisk(selectedRod);
+                game.getTopDisk(
+                    selectedRod
+                );
 
             if (disk != -1)
             {
@@ -182,7 +232,9 @@ void keyboardCallback(
         {
             // Drop:
             int disk =
-                game.getTopDisk(sourceRod);
+                game.getTopDisk(
+                    sourceRod
+                );
 
             if (game.moveDisk(
                 sourceRod,
@@ -263,6 +315,45 @@ void keyboardCallback(
     case 'Y':
         redoHanoi();
         break;
+
+
+        ///////////////////
+        // SWITCH CAMERA //
+        ///////////////////
+
+    case 'c':
+    case 'C':
+        switchCamera();
+        break;
+
+
+        /////////////////////////////
+        // SECONDARY CAMERA ORBIT //
+        /////////////////////////////
+
+    case 'a':
+    case 'A':
+        if (Eng::Base::getInstance().getCamera() ==
+            secondaryCamera)
+        {
+            moveSecondaryCamera(
+                -SECONDARY_CAMERA_ANGLE_STEP
+            );
+        }
+
+        break;
+
+    case 'd':
+    case 'D':
+        if (Eng::Base::getInstance().getCamera() ==
+            secondaryCamera)
+        {
+            moveSecondaryCamera(
+                SECONDARY_CAMERA_ANGLE_STEP
+            );
+        }
+
+        break;
     }
 
     Eng::Base::getInstance()
@@ -282,6 +373,7 @@ void specialCallback(
     switch (key)
     {
     case 100: // Left arrow
+
         selectedRod--;
 
         if (selectedRod < 0)
@@ -292,7 +384,9 @@ void specialCallback(
 
         break;
 
+
     case 102: // Right arrow
+
         selectedRod++;
 
         if (selectedRod >=
@@ -302,6 +396,7 @@ void specialCallback(
         }
 
         break;
+
 
     default:
         return;
@@ -365,7 +460,9 @@ void undoHanoi()
     }
 
     int destinationLevel =
-        game.getRodSize(move.from) - 1;
+        game.getRodSize(
+            move.from
+        ) - 1;
 
     hanoiScene.moveDisk(
         move.disk,
@@ -373,7 +470,8 @@ void undoHanoi()
         destinationLevel
     );
 
-    selectedRod = move.from;
+    selectedRod =
+        move.from;
 
     hanoiScene.updateRodSelection(
         selectedRod
@@ -412,7 +510,9 @@ void redoHanoi()
     }
 
     int destinationLevel =
-        game.getRodSize(move.to) - 1;
+        game.getRodSize(
+            move.to
+        ) - 1;
 
     hanoiScene.moveDisk(
         move.disk,
@@ -420,7 +520,8 @@ void redoHanoi()
         destinationLevel
     );
 
-    selectedRod = move.to;
+    selectedRod =
+        move.to;
 
     hanoiScene.updateRodSelection(
         selectedRod
@@ -437,6 +538,11 @@ void redoHanoi()
 
     game.printState();
 }
+
+
+///////////////////
+// SUN FUNCTIONS //
+///////////////////
 
 bool initSun()
 {
@@ -460,6 +566,7 @@ bool initSun()
     return true;
 }
 
+
 void updateSun(
     float deltaTime
 )
@@ -480,7 +587,11 @@ void updateSun(
         glm::rotate(
             glm::mat4(1.0f),
             glm::radians(sunAngle),
-            glm::vec3(1.0f, 0.0f, 0.0f)
+            glm::vec3(
+                1.0f,
+                0.0f,
+                0.0f
+            )
         );
 
     sunNode->setLocalMatrix(
@@ -488,6 +599,107 @@ void updateSun(
         rotation
     );
 }
+
+
+//////////////////////
+// CAMERA FUNCTIONS //
+//////////////////////
+
+void switchCamera()
+{
+    Eng::Base& eng =
+        Eng::Base::getInstance();
+
+    const auto& cameras =
+        eng.getCameras();
+
+    if (cameras.empty())
+        return;
+
+    currentCameraIndex =
+        (currentCameraIndex + 1) %
+        cameras.size();
+
+    eng.setCamera(
+        cameras[currentCameraIndex]
+    );
+
+    std::cout
+        << "Camera: "
+        << cameras[currentCameraIndex]
+        ->getName()
+        << std::endl;
+}
+
+
+void updateSecondaryCamera()
+{
+    if (secondaryCamera == nullptr)
+        return;
+
+    float angle =
+        glm::radians(
+            secondaryCameraAngle
+        );
+
+    glm::vec3 position(
+        secondaryCameraTarget.x +
+        SECONDARY_CAMERA_RADIUS *
+        std::sin(angle),
+
+        SECONDARY_CAMERA_HEIGHT,
+
+        secondaryCameraTarget.z +
+        SECONDARY_CAMERA_RADIUS *
+        std::cos(angle)
+    );
+
+    glm::mat4 view =
+        glm::lookAt(
+            position,
+            secondaryCameraTarget,
+            glm::vec3(
+                0.0f,
+                1.0f,
+                0.0f
+            )
+        );
+
+    secondaryCamera->setLocalMatrix(
+        glm::inverse(view)
+    );
+}
+
+
+void moveSecondaryCamera(
+    float angleDelta
+)
+{
+    secondaryCameraAngle +=
+        angleDelta;
+
+    if (secondaryCameraAngle <
+        SECONDARY_CAMERA_MIN_ANGLE)
+    {
+        secondaryCameraAngle =
+            SECONDARY_CAMERA_MIN_ANGLE;
+    }
+
+    if (secondaryCameraAngle >
+        SECONDARY_CAMERA_MAX_ANGLE)
+    {
+        secondaryCameraAngle =
+            SECONDARY_CAMERA_MAX_ANGLE;
+    }
+
+    updateSecondaryCamera();
+
+    std::cout
+        << "Secondary camera angle: "
+        << secondaryCameraAngle
+        << std::endl;
+}
+
 
 /////////////////////
 // DEBUG FUNCTIONS //
@@ -602,6 +814,7 @@ int main(
         << "OVO loaded successfully"
         << std::endl;
 
+
     /////////
     // SUN //
     /////////
@@ -612,6 +825,7 @@ int main(
             << "Unable to initialize Sun"
             << std::endl;
     }
+
 
     /////////////////////
     // INIT HANOI GAME //
@@ -669,9 +883,9 @@ int main(
         << std::endl;
 
 
-    ////////////
-    // CAMERA //
-    ////////////
+    //////////////////
+    // MAIN CAMERA //
+    //////////////////
 
     camera =
         new Eng::Camera(
@@ -712,7 +926,34 @@ int main(
         1000.0f
     );
 
-    eng.addCamera(camera);
+    eng.addCamera(
+        camera
+    );
+
+
+    //////////////////////
+    // SECONDARY CAMERA //
+    //////////////////////
+
+    secondaryCamera =
+        new Eng::Camera(
+            "SecondaryCamera"
+        );
+
+    secondaryCamera->setPerspective(
+        75.0f,
+        800.0f / 600.0f,
+        0.1f,
+        1000.0f
+    );
+
+    // Calculate its initial position
+    // using the orbital parameters:
+    updateSecondaryCamera();
+
+    eng.addCamera(
+        secondaryCamera
+    );
 
 
     ///////////////

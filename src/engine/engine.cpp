@@ -467,6 +467,11 @@ Eng::Camera* Eng::Base::getCameraAt(unsigned int index) const
     return cameras[index];
 }
 
+const std::vector<Eng::Camera*> &Eng::Base::getCameras() const
+{
+    return cameras;
+}
+
 Eng::List* Eng::Base::buildList(Node* root)
 {
     List* list = new List("renderList");

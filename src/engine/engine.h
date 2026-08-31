@@ -118,6 +118,7 @@ public: //
    void setCamera(Camera* camera);
    Camera* getCamera() const;
    Camera* getCameraAt(unsigned int index) const;
+   const std::vector<Camera*>& getCameras() const;
 
    // Rendering:
    List* buildList(Node* root);
