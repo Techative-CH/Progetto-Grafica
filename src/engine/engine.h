@@ -132,6 +132,10 @@ public: //
    void setWireframe(bool enabled);
    bool isWireframe() const;
 
+   // Flat shading / Gouraud
+   void setSmoothShading(bool enabled);
+   bool isSmoothShading();
+
 ///////////
 private: //
 ///////////	
@@ -144,6 +148,7 @@ private: //
 	float fps = 0.0f;
 
 	bool wireframe = false;
+	bool smoothShading = false;
 
    // Reserved:
    struct Reserved;

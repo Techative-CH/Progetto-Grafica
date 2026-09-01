@@ -377,6 +377,12 @@ void keyboardCallback(
 
         break;
     }
+
+    case 's':
+    case 'S':
+        Eng::Base & eng = Eng::Base::getInstance();
+        eng.setSmoothShading(!eng.isSmoothShading());
+        break;
     }
 
     Eng::Base::getInstance()

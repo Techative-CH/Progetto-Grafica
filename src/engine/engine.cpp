@@ -562,6 +562,17 @@ bool Eng::Base::isWireframe() const
     return wireframe;
 }
 
+void Eng::Base::setSmoothShading(bool enabled)
+{
+    smoothShading = enabled;
+    glShadeModel(enabled ? GL_SMOOTH : GL_FLAT);
+}
+
+bool Eng::Base::isSmoothShading()
+{
+    return smoothShading;
+}
+
 void Eng::Base::calculateFPS()
 {
     ++frameCount;
