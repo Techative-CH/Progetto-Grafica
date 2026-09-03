@@ -31,8 +31,12 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-Wl,-rpath,$``ORIGIN" />
 					<Add directory="../engine/bin/Release" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="cp ../engine/bin/Release/libengine.so bin/Release/" />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
