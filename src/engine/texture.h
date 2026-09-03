@@ -27,17 +27,8 @@ namespace Eng
 		Texture(const std::string& name);
 		virtual ~Texture();
 
-		bool createCheckerboard(
-			int width,
-			int height
-		);
-
 		bool loadFromFile(const std::string& filePath);
 		void render() const;
-
-		void setAnisotropy(float value);
-		float getAnisotropy() const;
-		float getMaxAnisotropy() const;
 
 		void setFilter(TextureFilter filter);
 		void setWrap(TextureWrap wrap);
@@ -47,12 +38,6 @@ namespace Eng
 		void unbind() const;
 
 		void applyParameters() const;
-
-		std::vector<unsigned char> buildCheckerboardBitmap(
-			int width,
-			int height,
-			int tileSize
-		) const;
 
 		unsigned int textureId;
 

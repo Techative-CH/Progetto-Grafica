@@ -5,21 +5,18 @@
  * @author      Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
  */
 
-
- //////////////
- // #INCLUDE //
- //////////////
-
- // Library header:
+// Library header
 #include "engine.h"
+
+// GLM
 #include <glm/gtc/matrix_transform.hpp>
 
-// C/C++:
+// Standard libraries
 #include <iostream>
 #include <chrono>
 #include <cmath>
 
-// Hanoi:
+// Hanoi
 #include "hanoiGame.h"
 #include "hanoiScene.h"
 
@@ -31,59 +28,46 @@
 Eng::Node* root = nullptr;
 Eng::List* renderList = nullptr;
 
-
-// Cameras:
+// Cameras
 Eng::Camera* camera = nullptr;
 Eng::Camera* secondaryCamera = nullptr;
 
 unsigned int currentCameraIndex = 0;
 
-
-// Secondary camera orbit:
-glm::vec3 secondaryCameraTarget(
-    -40.0f,
-    25.0f,
-    0.0f
-);
+// Secondary camera orbit
+glm::vec3 secondaryCameraTarget(-40.0f, 25.0f, 0.0f);
 
 constexpr float SECONDARY_CAMERA_RADIUS = 137.3f;
 constexpr float SECONDARY_CAMERA_HEIGHT = 85.0f;
 
 constexpr float SECONDARY_CAMERA_START_ANGLE = 10.5f;
-
-constexpr float SECONDARY_CAMERA_MIN_ANGLE =
-SECONDARY_CAMERA_START_ANGLE - 45.0f;
-
-constexpr float SECONDARY_CAMERA_MAX_ANGLE =
-SECONDARY_CAMERA_START_ANGLE + 90.0f;
-
+constexpr float SECONDARY_CAMERA_MIN_ANGLE = SECONDARY_CAMERA_START_ANGLE - 45.0f;
+constexpr float SECONDARY_CAMERA_MAX_ANGLE = SECONDARY_CAMERA_START_ANGLE + 90.0f;
 constexpr float SECONDARY_CAMERA_ANGLE_STEP = 1.0f;
 
-float secondaryCameraAngle =
-SECONDARY_CAMERA_START_ANGLE;
+float secondaryCameraAngle = SECONDARY_CAMERA_START_ANGLE;
 
+// Viewport
+int viewportWidth = 800;
+int viewportHeight = 600;
 
-// Hanoi:
+// Hanoi
 HanoiGame game;
 HanoiScene hanoiScene;
 
 int selectedRod = 0;
 int sourceRod = -1;
 
+// Frame time
+std::chrono::steady_clock::time_point lastFrameTime = std::chrono::steady_clock::now();
 
-// Frame time:
-std::chrono::steady_clock::time_point lastFrameTime =
-std::chrono::steady_clock::now();
-
-
-// Sun animation:
+// Sun animation
 Eng::Node* sunNode = nullptr;
 glm::mat4 sunOriginalMatrix;
 
 float sunAngle = 0.0f;
 
 constexpr float SUN_ROTATION_SPEED = 15.0f;
-
 
 /////////////////////////
 // FUNCTION PROTOTYPES //
@@ -93,25 +77,12 @@ void resetHanoi();
 void undoHanoi();
 void redoHanoi();
 
-void printNodePositions(
-    Eng::Node* node,
-    int depth = 0
-);
-
 bool initSun();
-
-void updateSun(
-    float deltaTime
-);
+void updateSun(float deltaTime);
 
 void switchCamera();
-
 void updateSecondaryCamera();
-
-void moveSecondaryCamera(
-    float angleDelta
-);
-
+void moveSecondaryCamera(float angleDelta);
 
 ////////////////////////
 // CALLBACK FUNCTIONS //
@@ -119,165 +90,92 @@ void moveSecondaryCamera(
 
 void displayCallback()
 {
-    auto currentTime =
-        std::chrono::steady_clock::now();
-
-    float deltaTime =
-        std::chrono::duration<float>(
-            currentTime - lastFrameTime
-        ).count();
+    auto currentTime = std::chrono::steady_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastFrameTime).count();
 
     lastFrameTime = currentTime;
 
     hanoiScene.update(deltaTime);
     updateSun(deltaTime);
 
-    Eng::Base& eng =
-        Eng::Base::getInstance();
+    Eng::Base& eng = Eng::Base::getInstance();
 
     eng.clearWindow();
     eng.loadIdentity();
 
-    if (root != nullptr &&
-        renderList != nullptr)
+    if (root != nullptr && renderList != nullptr)
     {
         renderList->pass(root);
         eng.render(renderList);
     }
 
+    hanoiScene.renderControls();
+
     eng.swapBuffers();
     eng.postRedisplay();
 }
 
-
-void reshapeCallback(
-    int width,
-    int height
-)
+void reshapeCallback(int width, int height)
 {
-    Eng::Base& eng =
-        Eng::Base::getInstance();
+    if (height == 0)
+        height = 1;
 
-    eng.setViewport(
-        0,
-        0,
-        width,
-        height
-    );
+    viewportWidth = width;
+    viewportHeight = height;
 
-    float aspect =
-        static_cast<float>(width) /
-        static_cast<float>(height);
+    Eng::Base& eng = Eng::Base::getInstance();
 
-    for (Eng::Camera* camera :
-        eng.getCameras())
+    eng.setViewport(0, 0, width, height);
+
+    // Set aspect ration for each camera
+    float aspect = static_cast<float>(width) / static_cast<float>(height);
+    for (Eng::Camera* camera : eng.getCameras())
     {
-        camera->setPerspective(
-            75.0f,
-            aspect,
-            0.1f,
-            1000.0f
-        );
+        camera->setPerspective(75.0f, aspect, 0.1f, 1000.0f);
     }
 }
 
-
-void keyboardCallback(
-    unsigned char key,
-    int mouseX,
-    int mouseY
-)
+void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 {
+    Eng::Base& eng = Eng::Base::getInstance();
+
     switch (key)
     {
     case 27:
         exit(0);
         break;
 
-
-        //////////
-        // MOVE //
-        //////////
-
+    // Pick / drop disk
     case ' ':
     {
         if (hanoiScene.isAnimating())
             break;
 
+        // Pick
         if (sourceRod == -1)
         {
-            // Pick up:
-            int disk =
-                game.getTopDisk(
-                    selectedRod
-                );
-
-            if (disk != -1)
-            {
-                if (hanoiScene.selectDisk(disk))
-                {
-                    sourceRod =
-                        selectedRod;
-
-                    std::cout
-                        << "Selected Disk_"
-                        << disk
-                        << " from rod "
-                        << sourceRod
-                        << std::endl;
-                }
-            }
+            int disk = game.getTopDisk(selectedRod);
+            if (disk != -1 && hanoiScene.selectDisk(disk))
+                sourceRod = selectedRod;
         }
         else
         {
-            // Drop:
-            int disk =
-                game.getTopDisk(
-                    sourceRod
-                );
-
-            if (game.moveDisk(
-                sourceRod,
-                selectedRod
-            ))
+            // Drop
+            int disk = game.getTopDisk(sourceRod);
+            if (game.moveDisk(sourceRod, selectedRod))
             {
-                int destinationLevel =
-                    game.getRodSize(
-                        selectedRod
-                    ) - 1;
-
-                hanoiScene.moveDisk(
-                    disk,
-                    selectedRod,
-                    destinationLevel
-                );
-
-                std::cout
-                    << "Moved Disk_"
-                    << disk
-                    << " from rod "
-                    << sourceRod
-                    << " to rod "
-                    << selectedRod
-                    << std::endl;
-
-                game.printState();
+                // Move disk to target at the correct height
+                int destinationLevel = game.getRodSize(selectedRod) - 1;
+                hanoiScene.moveDisk(disk, selectedRod, destinationLevel);
 
                 if (game.isSolved())
                 {
-                    std::cout
-                        << "Tower of Hanoi solved!"
-                        << std::endl;
+                    std::cout << "Tower of Hanoi solved!" << std::endl;
                 }
             }
             else
             {
-                hanoiScene
-                    .cancelDiskSelection();
-
-                std::cout
-                    << "Invalid move"
-                    << std::endl;
+                hanoiScene.cancelDiskSelection();
             }
 
             sourceRod = -1;
@@ -285,116 +183,67 @@ void keyboardCallback(
 
         break;
     }
-
-
-    ///////////
-    // RESET //
-    ///////////
-
+    
+    // Reset
     case 'r':
     case 'R':
         resetHanoi();
         break;
 
-
-        //////////
-        // UNDO //
-        //////////
-
+    // Undo
     case 'z':
     case 'Z':
         undoHanoi();
         break;
-
-
-        //////////
-        // REDO //
-        //////////
-
+    
+    // Redo
     case 'y':
     case 'Y':
         redoHanoi();
         break;
 
-
-        ///////////////////
-        // SWITCH CAMERA //
-        ///////////////////
-
+    // Switch camera
     case 'c':
     case 'C':
         switchCamera();
         break;
 
-
-        /////////////////////////////
-        // SECONDARY CAMERA ORBIT //
-        /////////////////////////////
-
+    // Orbit secondary camera
     case 'a':
     case 'A':
-        if (Eng::Base::getInstance().getCamera() ==
-            secondaryCamera)
-        {
-            moveSecondaryCamera(
-                -SECONDARY_CAMERA_ANGLE_STEP
-            );
-        }
-
+        if (eng.getCamera() == secondaryCamera)
+            moveSecondaryCamera(-SECONDARY_CAMERA_ANGLE_STEP);
         break;
 
     case 'd':
     case 'D':
-        if (Eng::Base::getInstance().getCamera() ==
-            secondaryCamera)
-        {
-            moveSecondaryCamera(
-                SECONDARY_CAMERA_ANGLE_STEP
-            );
-        }
-
+        if (eng.getCamera() == secondaryCamera)
+            moveSecondaryCamera(SECONDARY_CAMERA_ANGLE_STEP);
         break;
-    ///////////////
-    // WIREFRAME //
-    ///////////////
-
+    
+    // Wireframe mode
     case 'w':
     case 'W':
-    {
-        Eng::Base& eng =
-            Eng::Base::getInstance();
-
-        eng.setWireframe(
-            !eng.isWireframe()
-        );
-
-        std::cout
-            << "Wireframe: "
-            << (eng.isWireframe()
-                ? "ON"
-                : "OFF")
-            << std::endl;
-
+        eng.setWireframe(!eng.isWireframe());
         break;
-    }
 
+    // Smooth shading
     case 's':
     case 'S':
-        Eng::Base & eng = Eng::Base::getInstance();
         eng.setSmoothShading(!eng.isSmoothShading());
+        break;
+
+    // Help
+    case 'h':
+    case 'H':
+        hanoiScene.toggleControls();
         break;
     }
 
-    Eng::Base::getInstance()
-        .postRedisplay();
+    eng.postRedisplay();
 }
 
-
-void specialCallback(
-    int key,
-    int mouseX,
-    int mouseY
-)
+void specialCallback(int key, int mouseX, int mouseY)
 {
     if (hanoiScene.isAnimating())
         return;
@@ -402,48 +251,25 @@ void specialCallback(
     switch (key)
     {
     case 100: // Left arrow
-
         selectedRod--;
-
         if (selectedRod < 0)
-        {
-            selectedRod =
-                HanoiGame::NUM_RODS - 1;
-        }
-
+            selectedRod = HanoiGame::NUM_RODS - 1;
         break;
-
 
     case 102: // Right arrow
-
         selectedRod++;
-
-        if (selectedRod >=
-            HanoiGame::NUM_RODS)
-        {
+        if (selectedRod >= HanoiGame::NUM_RODS)
             selectedRod = 0;
-        }
-
         break;
-
 
     default:
         return;
     }
 
-    hanoiScene.updateRodSelection(
-        selectedRod
-    );
+    hanoiScene.updateRodSelection(selectedRod);
 
-    std::cout
-        << "Selected rod: "
-        << selectedRod
-        << std::endl;
-
-    Eng::Base::getInstance()
-        .postRedisplay();
+    Eng::Base::getInstance().postRedisplay();
 }
-
 
 //////////////////////////
 // HANOI GAME FUNCTIONS //
@@ -457,17 +283,8 @@ void resetHanoi()
     selectedRod = 0;
     sourceRod = -1;
 
-    hanoiScene.updateRodSelection(
-        selectedRod
-    );
-
-    std::cout
-        << "Game reset"
-        << std::endl;
-
-    game.printState();
+    hanoiScene.updateRodSelection(selectedRod);
 }
-
 
 void undoHanoi()
 {
@@ -480,44 +297,15 @@ void undoHanoi()
     Move move;
 
     if (!game.undo(move))
-    {
-        std::cout
-            << "Nothing to undo"
-            << std::endl;
-
         return;
-    }
 
-    int destinationLevel =
-        game.getRodSize(
-            move.from
-        ) - 1;
+    // Move disk to target rod at correct height
+    int destinationLevel = game.getRodSize(move.from) - 1;
+    hanoiScene.moveDisk(move.disk, move.from, destinationLevel);
 
-    hanoiScene.moveDisk(
-        move.disk,
-        move.from,
-        destinationLevel
-    );
-
-    selectedRod =
-        move.from;
-
-    hanoiScene.updateRodSelection(
-        selectedRod
-    );
-
-    std::cout
-        << "Undo: Disk_"
-        << move.disk
-        << " from rod "
-        << move.to
-        << " to rod "
-        << move.from
-        << std::endl;
-
-    game.printState();
+    selectedRod = move.from;
+    hanoiScene.updateRodSelection(selectedRod);
 }
-
 
 void redoHanoi()
 {
@@ -530,44 +318,15 @@ void redoHanoi()
     Move move;
 
     if (!game.redo(move))
-    {
-        std::cout
-            << "Nothing to redo"
-            << std::endl;
-
         return;
-    }
 
-    int destinationLevel =
-        game.getRodSize(
-            move.to
-        ) - 1;
+    // Move disk to target rod at correct height
+    int destinationLevel = game.getRodSize(move.to) - 1;
+    hanoiScene.moveDisk(move.disk, move.to, destinationLevel);
 
-    hanoiScene.moveDisk(
-        move.disk,
-        move.to,
-        destinationLevel
-    );
-
-    selectedRod =
-        move.to;
-
-    hanoiScene.updateRodSelection(
-        selectedRod
-    );
-
-    std::cout
-        << "Redo: Disk_"
-        << move.disk
-        << " from rod "
-        << move.from
-        << " to rod "
-        << move.to
-        << std::endl;
-
-    game.printState();
+    selectedRod = move.to;
+    hanoiScene.updateRodSelection(selectedRod);
 }
-
 
 ///////////////////
 // SUN FUNCTIONS //
@@ -575,60 +334,37 @@ void redoHanoi()
 
 bool initSun()
 {
-    sunNode =
-        root->findByName(
-            "Sun"
-        );
+    sunNode = root->findByName("Sun");
 
     if (sunNode == nullptr)
     {
-        std::cerr
-            << "Unable to find Sun"
-            << std::endl;
-
+        std::cerr << "Unable to find Sun" << std::endl;
         return false;
     }
 
-    sunOriginalMatrix =
-        sunNode->getLocalMatrix();
+    sunOriginalMatrix = sunNode->getLocalMatrix();
 
     return true;
 }
 
-
-void updateSun(
-    float deltaTime
-)
+void updateSun(float deltaTime)
 {
     if (sunNode == nullptr)
         return;
 
-    sunAngle +=
-        SUN_ROTATION_SPEED *
-        deltaTime;
+    sunAngle += SUN_ROTATION_SPEED * deltaTime;
 
     if (sunAngle >= 360.0f)
-    {
         sunAngle -= 360.0f;
-    }
 
-    glm::mat4 rotation =
-        glm::rotate(
-            glm::mat4(1.0f),
-            glm::radians(sunAngle),
-            glm::vec3(
-                1.0f,
-                0.0f,
-                0.0f
-            )
-        );
-
-    sunNode->setLocalMatrix(
-        sunOriginalMatrix *
-        rotation
+    glm::mat4 rotation = glm::rotate(
+        glm::mat4(1.0f),
+        glm::radians(sunAngle),
+        glm::vec3(1.0f, 0.0f, 0.0f)
     );
-}
 
+    sunNode->setLocalMatrix(sunOriginalMatrix * rotation);
+}
 
 //////////////////////
 // CAMERA FUNCTIONS //
@@ -636,145 +372,50 @@ void updateSun(
 
 void switchCamera()
 {
-    Eng::Base& eng =
-        Eng::Base::getInstance();
-
-    const auto& cameras =
-        eng.getCameras();
+    Eng::Base& eng = Eng::Base::getInstance();
+    const auto& cameras = eng.getCameras();
 
     if (cameras.empty())
         return;
 
-    currentCameraIndex =
-        (currentCameraIndex + 1) %
-        cameras.size();
-
-    eng.setCamera(
-        cameras[currentCameraIndex]
-    );
-
-    std::cout
-        << "Camera: "
-        << cameras[currentCameraIndex]
-        ->getName()
-        << std::endl;
+    currentCameraIndex = (currentCameraIndex + 1) % cameras.size();
+    eng.setCamera(cameras[currentCameraIndex]);
 }
-
 
 void updateSecondaryCamera()
 {
     if (secondaryCamera == nullptr)
         return;
 
-    float angle =
-        glm::radians(
-            secondaryCameraAngle
-        );
+    float angle = glm::radians(secondaryCameraAngle);
+    float x = secondaryCameraTarget.x + SECONDARY_CAMERA_RADIUS * std::sin(angle);
+    float z = secondaryCameraTarget.z + SECONDARY_CAMERA_RADIUS * std::cos(angle);
 
-    glm::vec3 position(
-        secondaryCameraTarget.x +
-        SECONDARY_CAMERA_RADIUS *
-        std::sin(angle),
+    glm::vec3 position(x, SECONDARY_CAMERA_HEIGHT, z);
 
-        SECONDARY_CAMERA_HEIGHT,
-
-        secondaryCameraTarget.z +
-        SECONDARY_CAMERA_RADIUS *
-        std::cos(angle)
+    glm::mat4 view = glm::lookAt(
+        position, 
+        secondaryCameraTarget,
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
-
-    glm::mat4 view =
-        glm::lookAt(
-            position,
-            secondaryCameraTarget,
-            glm::vec3(
-                0.0f,
-                1.0f,
-                0.0f
-            )
-        );
 
     secondaryCamera->setLocalMatrix(
         glm::inverse(view)
     );
 }
 
-
-void moveSecondaryCamera(
-    float angleDelta
-)
+void moveSecondaryCamera(float angleDelta)
 {
-    secondaryCameraAngle +=
-        angleDelta;
+    secondaryCameraAngle += angleDelta;
 
-    if (secondaryCameraAngle <
-        SECONDARY_CAMERA_MIN_ANGLE)
-    {
-        secondaryCameraAngle =
-            SECONDARY_CAMERA_MIN_ANGLE;
-    }
+    if (secondaryCameraAngle < SECONDARY_CAMERA_MIN_ANGLE)
+        secondaryCameraAngle = SECONDARY_CAMERA_MIN_ANGLE;
 
-    if (secondaryCameraAngle >
-        SECONDARY_CAMERA_MAX_ANGLE)
-    {
-        secondaryCameraAngle =
-            SECONDARY_CAMERA_MAX_ANGLE;
-    }
+    if (secondaryCameraAngle > SECONDARY_CAMERA_MAX_ANGLE)
+        secondaryCameraAngle = SECONDARY_CAMERA_MAX_ANGLE;
 
     updateSecondaryCamera();
-
-    std::cout
-        << "Secondary camera angle: "
-        << secondaryCameraAngle
-        << std::endl;
 }
-
-
-/////////////////////
-// DEBUG FUNCTIONS //
-/////////////////////
-
-void printNodePositions(
-    Eng::Node* node,
-    int depth
-)
-{
-    if (!node)
-        return;
-
-    glm::mat4 world =
-        node->getWorldMatrix();
-
-    glm::vec3 position(
-        world[3][0],
-        world[3][1],
-        world[3][2]
-    );
-
-    std::cout
-        << std::string(
-            depth * 2,
-            ' '
-        )
-        << node->getName()
-        << " -> "
-        << position.x
-        << ", "
-        << position.y
-        << ", "
-        << position.z
-        << std::endl;
-
-    for (Eng::Node* child :
-        node->getChildren())
-    {
-        printNodePositions(
-            child,
-            depth + 1
-        );
-    }
-}
-
 
 //////////
 // MAIN //
@@ -786,87 +427,38 @@ void printNodePositions(
  * @param argv array containing up to argc passed arguments
  * @return error code (0 on success, error code otherwise)
  */
-int main(
-    int argc,
-    char* argv[]
-)
+int main(int argc, char* argv[])
 {
-    std::cout
-        << "Client - Tower of Hanoi, S. Banfi (C) SUPSI"
-        << std::endl
-        << std::endl;
+    std::cout << "Client - Tower of Hanoi, S. Banfi (C) SUPSI" << std::endl << std::endl;
 
-    Eng::Base& eng =
-        Eng::Base::getInstance();
+    // Initialize engine
+    Eng::Base& eng = Eng::Base::getInstance();
 
+    eng.init("Tower of Hanoi", 800, 600);
+    eng.setBackgroundColor(0.0f, 0.0f, 0.0f);
 
-    ///////////////////////////
-    // ENGINE INITIALIZATION //
-    ///////////////////////////
-
-    eng.init(
-        "Tower of Hanoi",
-        800,
-        600
-    );
-
-    eng.setBackgroundColor(
-        0.0f,
-        0.0f,
-        0.0f
-    );
-
-
-    ////////////////////
-    // LOAD OVO SCENE //
-    ////////////////////
-
-    root =
-        eng.load(
-            "assets/hanoi/hanoi.ovo"
-        );
+    // Load OVO scene
+    root = eng.load("assets/hanoi/hanoi.ovo");
 
     if (root == nullptr)
     {
-        std::cerr
-            << "OVO loading failed"
-            << std::endl;
-
+        std::cerr << "OVO loading failed" << std::endl;
         eng.free();
-
         return -1;
     }
 
-    printNodePositions(root);
+    std::cout << "OVO loaded successfully" << std::endl;
 
-    std::cout
-        << "OVO loaded successfully"
-        << std::endl;
-
-
-    /////////
-    // SUN //
-    /////////
-
+    // Sun
     if (!initSun())
-    {
-        std::cerr
-            << "Unable to initialize Sun"
-            << std::endl;
-    }
-
-
-    /////////////////////
-    // INIT HANOI GAME //
-    /////////////////////
-
+        std::cerr << "Unable to initialize Sun" << std::endl;
+    
+    // Initialize Hanoi game
     game.init();
 
     if (!hanoiScene.init(root))
     {
-        std::cerr
-            << "Unable to initialize Hanoi scene"
-            << std::endl;
+        std::cerr << "Unable to initialize Hanoi scene" << std::endl;
 
         delete root;
         root = nullptr;
@@ -876,25 +468,16 @@ int main(
         return -1;
     }
 
-    hanoiScene.updateRodSelection(
-        selectedRod
-    );
+    std::cout << "Hanoi game initialized successfully" << std::endl;
 
-    game.printState();
+    hanoiScene.updateRodSelection(selectedRod);
 
-
-    ///////////////////////
-    // BUILD RENDER LIST //
-    ///////////////////////
-
-    renderList =
-        eng.buildList(root);
+    // Build render list
+    renderList = eng.buildList(root);
 
     if (renderList == nullptr)
     {
-        std::cerr
-            << "Unable to create render list"
-            << std::endl;
+        std::cerr << "Unable to create render list" << std::endl;
 
         delete root;
         root = nullptr;
@@ -904,123 +487,42 @@ int main(
         return -1;
     }
 
-    std::cout
-        << "Render elements: "
-        << renderList
-        ->getElements()
-        .size()
-        << std::endl;
+    // Main camera
+    camera = new Eng::Camera("MainCamera");
 
+    glm::vec3 cameraPosition(-36.0f, 39.0f, 60.0f);
+    glm::vec3 cameraTarget(-40.0f, 18.0f, 12.0f);
 
-    //////////////////
-    // MAIN CAMERA //
-    //////////////////
-
-    camera =
-        new Eng::Camera(
-            "MainCamera"
-        );
-
-    glm::vec3 cameraPosition(
-        -36.0f,
-        39.0f,
-        60.0f
+    glm::mat4 view = glm::lookAt(
+        cameraPosition,
+        cameraTarget,
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
-
-    glm::vec3 cameraTarget(
-        -40.0f,
-        18.0f,
-        12.0f
-    );
-
-    glm::mat4 view =
-        glm::lookAt(
-            cameraPosition,
-            cameraTarget,
-            glm::vec3(
-                0.0f,
-                1.0f,
-                0.0f
-            )
-        );
 
     camera->setLocalMatrix(
         glm::inverse(view)
     );
 
-    camera->setPerspective(
-        75.0f,
-        800.0f / 600.0f,
-        0.1f,
-        1000.0f
-    );
+    camera->setPerspective(75.0f, 800.0f / 600.0f, 0.1f, 1000.0f);
+    eng.addCamera(camera);
 
-    eng.addCamera(
-        camera
-    );
+    // Secondary camera
+    secondaryCamera = new Eng::Camera("SecondaryCamera");
+    secondaryCamera->setPerspective(75.0f, 800.0f / 600.0f, 0.1f, 1000.0f);
+    updateSecondaryCamera(); // init position
+    eng.addCamera(secondaryCamera);
 
+    // Bind callbacks to engine
+    eng.setDisplayCallback(displayCallback);
+    eng.setReshapeCallback(reshapeCallback);
+    eng.setKeyboardCallback(keyboardCallback);
+    eng.setSpecialCallback(specialCallback);
 
-    //////////////////////
-    // SECONDARY CAMERA //
-    //////////////////////
-
-    secondaryCamera =
-        new Eng::Camera(
-            "SecondaryCamera"
-        );
-
-    secondaryCamera->setPerspective(
-        75.0f,
-        800.0f / 600.0f,
-        0.1f,
-        1000.0f
-    );
-
-    // Calculate its initial position
-    // using the orbital parameters:
-    updateSecondaryCamera();
-
-    eng.addCamera(
-        secondaryCamera
-    );
-
-
-    ///////////////
-    // CALLBACKS //
-    ///////////////
-
-    eng.setDisplayCallback(
-        displayCallback
-    );
-
-    eng.setReshapeCallback(
-        reshapeCallback
-    );
-
-    eng.setKeyboardCallback(
-        keyboardCallback
-    );
-
-    eng.setSpecialCallback(
-        specialCallback
-    );
-
-
-    /////////////////////
-    // START MAIN LOOP //
-    /////////////////////
-
-    std::cout
-        << "Engine started correctly"
-        << std::endl;
-
+    // Start main loop
+    std::cout << "Engine started correctly" << std::endl;
     eng.mainLoop();
 
-
-    /////////////
-    // CLEANUP //
-    /////////////
-
+    // Cleanup
     delete renderList;
     renderList = nullptr;
 
@@ -1029,9 +531,7 @@ int main(
 
     eng.free();
 
-    std::cout
-        << "\n[application terminated]"
-        << std::endl;
+    std::cout << "\n[application terminated]" << std::endl;
 
     return 0;
 }

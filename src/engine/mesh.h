@@ -23,8 +23,6 @@ namespace Eng
 		Mesh(const std::string& name);
 		virtual ~Mesh();
 
-		void setCubeEdge(float edge);
-
 		void setMaterial(Material* material);
 		Material* getMaterial() const;
 
@@ -37,7 +35,6 @@ namespace Eng
 		void render() override;
 
 	private:
-		float cubeEdge;
 		Material* material;
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;

@@ -5,35 +5,25 @@
  * @author	Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
  */
 #pragma once
-
-
  
-//////////////
-// #INCLUDE //
-//////////////
-
-// C/C++:         
+// Standard libraries         
 #include <memory> 
 #include <string>
 #include <vector>
 #include <chrono>
 
+// Engine API
 #include "engineApi.h"
 
-
-
-/////////////
-// VERSION //
-/////////////
-
-// Generic info:
+// Library informations
 #ifdef _DEBUG
-   #define LIB_NAME      "My Graphics Engine v0.1a (debug)"   ///< Library credits
+   #define LIB_NAME "Bansam Graphic Engine v1.0 (debug)"
 #else
-   #define LIB_NAME      "My Graphics Engine v0.1a"   ///< Library credits
+   #define LIB_NAME "Bansam Graphic Engine v1.0a"
 #endif
-   #define LIB_VERSION   10                           ///< Library version (divide by 10)
+   #define LIB_VERSION 10
 
+// Include engine API headers
 #include "object.h"
 #include "node.h"
 #include "mesh.h"
@@ -43,123 +33,93 @@
 #include "material.h"
 #include "list.h"
 
-
-///////////////
-// NAMESPACE //
-///////////////
-
 namespace Eng {
+	/**
+	 * @brief Base engine main class. This class is a singleton.
+	 */
+	class ENG_API Base final
+	{
+	public:      
 
+	   // Const / dest
+	   Base(Base const &) = delete;
+	   ~Base();
 
+	   // Operators
+	   void operator=(Base const &) = delete;
 
-//////////////
-// #INCLUDE //
-//////////////   
+	   // Singleton
+	   static Base &getInstance();
 
-// You can subinclude here other headers of your engine...
+	   // Init / free
+	   bool init(const char* windowTitle, int width, int height);
+	   bool free();
 
-///////////////////////
-// MAIN ENGINE CLASS //
-///////////////////////
+	   // Rendering
+	   void clearWindow();
+	   void swapBuffers();
+	   void setBackgroundColor(float r, float g, float b, float a = 1.0f);
+	   void setViewport(int x, int y, int width, int height);
+	   void loadIdentity();
 
-/**
- * @brief Base engine main class. This class is a singleton.
- */
-class ENG_API Base final
-{
-//////////
-public: //
-//////////	      
+	   // Callbacks
+	   void setDisplayCallback(void (*callback)());
+	   void setReshapeCallback(void (*callback)(int width, int height));
+	   void setKeyboardCallback(void (*callback)(unsigned char key, int mouseX, int mouseY));
+	   void setSpecialCallback(void (*callback)(int key, int mouseX, int mouseY));
+	   void setTimerCallback(unsigned int millis, void (*callback)(int value), int value = 0);
 
-   // Const/dest:
-   Base(Base const &) = delete;
-   ~Base();
+	   // Main loop
+	   void mainLoop();
+	   void postRedisplay();
+	   bool isRunning() const;
 
-   // Operators:
-   void operator=(Base const &) = delete;
+	   // Cameras
+	   void addCamera(Camera* camera);
+	   void setCamera(Camera* camera);
+	   Camera* getCamera() const;
+	   Camera* getCameraAt(unsigned int index) const;
+	   const std::vector<Camera*>& getCameras() const;
 
-   // Singleton:
-   static Base &getInstance();
+	   // Rendering
+	   List* buildList(Node* root);
+	   void render(Node* node);
+	   void render(List* list);
 
-   // Init/free:
-   bool init(const char* windowTitle, int width, int height);
-   bool free();
+	   // Load OVO Model
+	   Node* load(const std::string& filename);
 
-   // Rendering:
-   void clearWindow();
-   void swapBuffers();
-   void setBackgroundColor(float r, float g, float b, float a = 1.0f);
-   void setViewport(int x, int y, int width, int height);
-   void setPerspective(float fov, float aspect, float nearPlane, float farPlane);
-   void loadIdentity();
+	   // Wireframe mode
+	   void setWireframe(bool enabled);
+	   bool isWireframe() const;
 
-   // Callbacks:
-   void setDisplayCallback(void (*callback)());
-   void setReshapeCallback(void (*callback)(int width, int height));
-   void setKeyboardCallback(void (*callback)(unsigned char key, int mouseX, int mouseY));
-   void setSpecialCallback(void (*callback)(int key, int mouseX, int mouseY));
-   void setTimerCallback(unsigned int millis, void (*callback)(int value), int value = 0);
+	   // Flat shading / Gouraud
+	   void setSmoothShading(bool enabled);
+	   bool isSmoothShading();
 
-   // Main loop:
-   void mainLoop();
-   void postRedisplay();
-   bool isRunning() const;
+	   // Render text
+	   void renderText(const std::string& text, int x, int y, float r = 1.0f, float g = 1.0f, float b = 1.0f);
+	   void renderFPS();
 
-   // Transformations:
-   void translate(float x, float y, float z);
-   void rotate(float angle, float x, float y, float z);
-   void scale(float x, float y, float z);
+	private:
+		Camera* currentCamera;
+		std::vector<Camera*> cameras;
 
-   // Primitives:
-   void drawCube(float edge);
+		std::chrono::time_point<std::chrono::steady_clock> lastFpsTime;
+		int frameCount = 0;
+		float fps = 0.0f;
 
-   // Cameras:
-   void addCamera(Camera* camera);
-   void setCamera(Camera* camera);
-   Camera* getCamera() const;
-   Camera* getCameraAt(unsigned int index) const;
-   const std::vector<Camera*>& getCameras() const;
+		bool wireframe = false;
+		bool smoothShading = false;
 
-   // Rendering:
-   List* buildList(Node* root);
-   void render(Node* node);
-   void render(List* list);
+	   // Reserved
+	   struct Reserved;
+	   std::unique_ptr<Reserved> reserved;
 
-   // Load OVO Model:
-   Node* load(const std::string& filename);
+	   // Const / dest
+	   Base();
 
-   // Wireframe mode
-   void setWireframe(bool enabled);
-   bool isWireframe() const;
-
-   // Flat shading / Gouraud
-   void setSmoothShading(bool enabled);
-   bool isSmoothShading();
-
-///////////
-private: //
-///////////	
-
-	Camera* currentCamera;
-	std::vector<Camera*> cameras;
-
-	std::chrono::time_point<std::chrono::steady_clock> lastFpsTime;
-	int frameCount = 0;
-	float fps = 0.0f;
-
-	bool wireframe = false;
-	bool smoothShading = false;
-
-   // Reserved:
-   struct Reserved;
-   std::unique_ptr<Reserved> reserved;
-
-   // Const/dest:
-   Base();
-
-   void calculateFPS();
-   void renderFPS();
+	   void calculateFPS();
+	};
 };
-
-}; // end of namespace Eng::
 

@@ -21,13 +21,9 @@ enum class AnimationPhase
 struct DiskAnimation
 {
     bool active = false;
-
     Eng::Node* disk = nullptr;
-
-    glm::vec3 targetPosition;
-
+    glm::vec3 targetPosition{ 0.0f};
     float liftHeight = 0.0f;
-
     AnimationPhase phase = AnimationPhase::NONE;
 };
 
@@ -43,18 +39,21 @@ public:
 
     bool selectDisk(int disk);
     void cancelDiskSelection();
-
-    void moveDisk(
-        int disk,
-        int destinationRod,
-        int destinationLevel
-    );
+    void moveDisk(int disk, int destinationRod, int destinationLevel);
 
     void reset();
 
     bool isAnimating() const;
 
+    void renderControls();
+    void toggleControls();
+
 private:
+    static constexpr float DISK_SPEED = 150.0f;
+    static constexpr float LIFT_MARGIN = 15.0f;
+    static constexpr float SELECTION_HEIGHT = 4.0f;
+    static constexpr float ROD_SELECTION_HEIGHT = 4.0f;
+    
     std::vector<Eng::Node*> diskNodes;
     std::vector<Eng::Node*> rodNodes;
 
@@ -69,8 +68,5 @@ private:
     float diskSpacing = 0.0f;
     float baseDiskHeight = 0.0f;
 
-    static constexpr float DISK_SPEED = 150.0f;
-    static constexpr float LIFT_MARGIN = 15.0f;
-    static constexpr float SELECTION_HEIGHT = 4.0f;
-    static constexpr float ROD_SELECTION_HEIGHT = 4.0f;
+    bool showControls = true;
 };
