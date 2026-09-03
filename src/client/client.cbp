@@ -47,6 +47,8 @@
 		</Linker>
 		<Unit filename="hanoiGame.cpp" />
 		<Unit filename="hanoiGame.h" />
+		<Unit filename="hanoiScene.cpp" />
+		<Unit filename="hanoiScene.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="move.h" />
 		<Extensions />
