@@ -69,7 +69,6 @@
 		<Unit filename="omniLight.cpp" />
 		<Unit filename="omniLight.h" />
 		<Unit filename="ovo.cpp" />
-		<Unit filename="ovoReader.cpp" />
 		<Unit filename="ovoReader.h" />
 		<Unit filename="spotLight.cpp" />
 		<Unit filename="spotLight.h" />

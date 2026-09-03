@@ -183,7 +183,7 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 
         break;
     }
-    
+
     // Reset
     case 'r':
     case 'R':
@@ -195,7 +195,7 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
     case 'Z':
         undoHanoi();
         break;
-    
+
     // Redo
     case 'y':
     case 'Y':
@@ -220,7 +220,7 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
         if (eng.getCamera() == secondaryCamera)
             moveSecondaryCamera(SECONDARY_CAMERA_ANGLE_STEP);
         break;
-    
+
     // Wireframe mode
     case 'w':
     case 'W':
@@ -394,7 +394,7 @@ void updateSecondaryCamera()
     glm::vec3 position(x, SECONDARY_CAMERA_HEIGHT, z);
 
     glm::mat4 view = glm::lookAt(
-        position, 
+        position,
         secondaryCameraTarget,
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
@@ -447,8 +447,8 @@ int main(int argc, char* argv[])
     }
 
     // Sun
-    !initSun();
-    
+    initSun();
+
     // Initialize Hanoi game
     game.init();
 
