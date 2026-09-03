@@ -28,7 +28,7 @@ bool HanoiScene::init(Eng::Node* root)
 
         if (rod == nullptr)
         {
-            std::cerr << "Unable to find rod: " << rodNames[i] << std::endl;
+            std::cerr << "[HANOI ERROR] Unable to find rod: " << rodNames[i] << std::endl;
             return false;
         }
 
@@ -40,6 +40,12 @@ bool HanoiScene::init(Eng::Node* root)
     }
 
     // Disks
+    if (HanoiGame::NUM_DISKS < 2)
+    {
+        std::cerr << "[HANOI ERROR] At least two disks are required" << std::endl;
+        return false;
+    }
+
     for (int i = 1; i <= HanoiGame::NUM_DISKS; i++)
     {
         std::string diskName = "Disk_" + std::to_string(i);
@@ -48,7 +54,7 @@ bool HanoiScene::init(Eng::Node* root)
 
         if (disk == nullptr)
         {
-            std::cerr << "Unable to find disk: " << diskName << std::endl;
+            std::cerr << "[HANOI ERROR] Unable to find disk: " << diskName << std::endl;
             return false;
         }
 
@@ -60,12 +66,6 @@ bool HanoiScene::init(Eng::Node* root)
     }
 
     // Disk height and spacing
-    if (diskNodes.size() < 2)
-    {
-        std::cerr << "At least two disks are required" << std::endl;
-        return false;
-    }
-
     Eng::Node* disk1 = diskNodes[HanoiGame::NUM_DISKS - 1];
     Eng::Node* disk2 = diskNodes[HanoiGame::NUM_DISKS - 2];
 
@@ -252,7 +252,7 @@ void HanoiScene::moveDisk(int disk, int destinationRod, int destinationLevel)
     animation.liftHeight = liftHeight;
     animation.phase = AnimationPhase::LIFT;
 
-   // Selected disk is controlled by animation
+    // Selected disk is controlled by animation
     selectedDiskNode = nullptr;
 }
 
@@ -324,7 +324,7 @@ void HanoiScene::renderControls()
     eng.renderText("[R] Reset", x, y);
     y += spacing;
 
-    // Show pick disk command 
+    // Show pick disk command
     eng.renderText("[SPACE] Pick disk", x, y);
     y += spacing;
 

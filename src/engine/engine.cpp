@@ -192,6 +192,15 @@ bool ENG_API Eng::Base::free()
         return false;
     }
 
+    // Remove cameras
+    for (Camera* camera : cameras)
+    {
+        delete camera;
+    }
+
+    cameras.clear();
+    currentCamera = nullptr;
+
     FreeImage_DeInitialise();
 
     std::cout << "[ENGINE] " << LIB_NAME << " deinitialized" << std::endl;

@@ -338,7 +338,7 @@ bool initSun()
 
     if (sunNode == nullptr)
     {
-        std::cerr << "Unable to find Sun" << std::endl;
+        std::cerr << "[HANOI ERROR] Unable to find Sun" << std::endl;
         return false;
     }
 
@@ -442,24 +442,18 @@ int main(int argc, char* argv[])
 
     if (root == nullptr)
     {
-        std::cerr << "OVO loading failed" << std::endl;
         eng.free();
         return -1;
     }
 
-    std::cout << "OVO loaded successfully" << std::endl;
-
     // Sun
-    if (!initSun())
-        std::cerr << "Unable to initialize Sun" << std::endl;
+    !initSun();
     
     // Initialize Hanoi game
     game.init();
 
     if (!hanoiScene.init(root))
     {
-        std::cerr << "Unable to initialize Hanoi scene" << std::endl;
-
         delete root;
         root = nullptr;
 
@@ -467,25 +461,11 @@ int main(int argc, char* argv[])
 
         return -1;
     }
-
-    std::cout << "Hanoi game initialized successfully" << std::endl;
 
     hanoiScene.updateRodSelection(selectedRod);
 
     // Build render list
     renderList = eng.buildList(root);
-
-    if (renderList == nullptr)
-    {
-        std::cerr << "Unable to create render list" << std::endl;
-
-        delete root;
-        root = nullptr;
-
-        eng.free();
-
-        return -1;
-    }
 
     // Main camera
     camera = new Eng::Camera("MainCamera");
@@ -519,7 +499,6 @@ int main(int argc, char* argv[])
     eng.setSpecialCallback(specialCallback);
 
     // Start main loop
-    std::cout << "Engine started correctly" << std::endl;
     eng.mainLoop();
 
     // Cleanup
@@ -528,6 +507,9 @@ int main(int argc, char* argv[])
 
     delete root;
     root = nullptr;
+
+    camera = nullptr;
+    secondaryCamera = nullptr;
 
     eng.free();
 
