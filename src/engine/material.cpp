@@ -1,9 +1,15 @@
+/**
+ * @file material.cpp
+ * @brief Material file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
+
 #include "material.h"
 #include "texture.h"
 
 #include <GL/freeglut.h>
 #include <glm/gtc/type_ptr.hpp>
-
 
 /**
  * @brief Creates a material with default OpenGL material properties.

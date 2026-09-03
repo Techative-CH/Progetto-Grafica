@@ -1,3 +1,9 @@
+/**
+ * @file texture.h
+ * @brief Texture include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "object.h"
@@ -43,9 +49,6 @@ namespace Eng
 
 		int width;
 		int height;
-
-		float anisotropy;
-		float maxAnisotropy;
 
 		TextureFilter filter;
 		TextureWrap wrap;

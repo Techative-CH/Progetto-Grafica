@@ -1,3 +1,9 @@
+/**
+ * @file texture.cpp
+ * @brief Texture file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "texture.h"
 
 #include <GL/freeglut.h>

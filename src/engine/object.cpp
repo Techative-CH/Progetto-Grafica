@@ -1,3 +1,9 @@
+/**
+ * @file object.cpp
+ * @brief Object file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "object.h"
 
 /**

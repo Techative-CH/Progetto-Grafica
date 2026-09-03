@@ -1,3 +1,9 @@
+/**
+ * @file engineApi.h
+ * @brief Engine API export and import definitions
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #ifdef _WINDOWS

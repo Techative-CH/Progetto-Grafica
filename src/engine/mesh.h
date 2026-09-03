@@ -1,3 +1,9 @@
+/**
+ * @file mesh.h
+ * @brief Mesh include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "engineApi.h"

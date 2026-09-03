@@ -48,6 +48,8 @@ public:
     void renderControls();
     void toggleControls();
 
+    void renderVictory(int viewportWidth, int viewportHeight);
+
 private:
     static constexpr float DISK_SPEED = 150.0f;
     static constexpr float LIFT_MARGIN = 15.0f;
@@ -61,7 +63,7 @@ private:
     std::vector<glm::mat4> rodOriginalMatrices;
 
     Eng::Node* selectedDiskNode = nullptr;
-    glm::vec3 selectedDiskOriginalPosition;
+    glm::vec3 selectedDiskOriginalPosition{ 0.0f };
 
     DiskAnimation animation;
 

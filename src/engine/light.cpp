@@ -1,3 +1,9 @@
+/**
+ * @file light.cpp
+ * @brief Light main file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "light.h"
 
 /**

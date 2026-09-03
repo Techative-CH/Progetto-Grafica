@@ -1,3 +1,9 @@
+/**
+ * @file directionalLight.cpp
+ * @brief Directional light file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "directionalLight.h"
 
 #include <GL/freeglut.h>

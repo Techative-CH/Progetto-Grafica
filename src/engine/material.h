@@ -1,3 +1,9 @@
+/**
+ * @file material.h
+ * @brief Material include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "engineApi.h"

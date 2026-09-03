@@ -1,8 +1,8 @@
 /**
- * @file		engine.h
- * @brief	Graphics engine main include file
+ * @file engine.h
+ * @brief Graphics engine main include file
  *
- * @author	Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
  */
 #pragma once
  

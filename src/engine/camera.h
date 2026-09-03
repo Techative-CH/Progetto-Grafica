@@ -1,3 +1,9 @@
+/**
+ * @file camera.h
+ * @brief Camera include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "engineApi.h"

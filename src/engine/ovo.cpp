@@ -1,3 +1,9 @@
+/**
+ * @file ovo.cpp
+ * @brief OVO reader file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "ovoReader.h"
 #include "node.h"
 #include "mesh.h"

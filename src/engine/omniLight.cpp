@@ -1,3 +1,9 @@
+/**
+ * @file omniLight.cpp
+ * @brief Omnidirectional light file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "omniLight.h"
 
 #include <GL/freeglut.h>

@@ -1,3 +1,9 @@
+/**
+ * @file object.h
+ * @brief Object include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "engineApi.h"

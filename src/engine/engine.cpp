@@ -1,8 +1,8 @@
 /**
- * @file    engine.cpp
- * @brief   Graphics engine main file
+ * @file engine.cpp
+ * @brief Graphics engine main file
  *
- * @author  Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
  */
 
 #include "engine.h"

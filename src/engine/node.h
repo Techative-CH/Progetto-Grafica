@@ -1,3 +1,9 @@
+/**
+ * @file node.h
+ * @brief Node include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "engineApi.h"

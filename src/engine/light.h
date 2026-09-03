@@ -1,3 +1,9 @@
+/**
+ * @file light.h
+ * @brief Light main include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "node.h"

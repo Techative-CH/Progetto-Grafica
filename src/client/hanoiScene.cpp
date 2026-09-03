@@ -340,3 +340,22 @@ void HanoiScene::toggleControls()
 {
     showControls = !showControls;
 }
+
+void HanoiScene::renderVictory(int viewportWidth, int viewportHeight)
+{
+    Eng::Base& eng = Eng::Base::getInstance();
+
+    const std::string title = "TOWER OF HANOI SOLVED!";
+    const std::string restart = "Press R to restart";
+
+    const int characterWidth = 8;
+    const int spacing = 20;
+
+    int centerY = viewportHeight / 2;
+
+    int titleX = (viewportWidth - static_cast<int>(title.length()) * characterWidth) / 2;
+    int restartX = (viewportWidth - static_cast<int>(restart.length()) * characterWidth) / 2;
+
+    eng.renderText(title, titleX, centerY + spacing);
+    eng.renderText(restart, restartX, centerY - spacing);
+}

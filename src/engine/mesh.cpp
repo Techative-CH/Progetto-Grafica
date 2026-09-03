@@ -1,8 +1,13 @@
+/**
+ * @file mesh.cpp
+ * @brief Mesh file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "mesh.h"
 #include "engine.h"
 
 #include <GL/freeglut.h>
-
 
 /**
  * @brief Creates a mesh with no material assigned.

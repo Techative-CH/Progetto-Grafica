@@ -1,3 +1,9 @@
+/**
+ * @file omniLight.h
+ * @brief Omnidirectional light include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "light.h"

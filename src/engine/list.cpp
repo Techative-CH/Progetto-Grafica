@@ -1,3 +1,9 @@
+/**
+ * @file list.cpp
+ * @brief List file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "list.h"
 #include "node.h"
 #include "mesh.h"

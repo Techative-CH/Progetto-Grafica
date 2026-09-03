@@ -1,3 +1,9 @@
+/**
+ * @file spotLight.cpp
+ * @brief Spotlight file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "spotLight.h"
 
 #include <GL/freeglut.h>

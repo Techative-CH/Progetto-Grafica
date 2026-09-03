@@ -1,3 +1,9 @@
+/**
+ * @file node.cpp
+ * @brief Node file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #include "node.h"
 
 #include <glm/gtc/matrix_transform.hpp>

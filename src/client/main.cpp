@@ -111,6 +111,9 @@ void displayCallback()
 
     hanoiScene.renderControls();
 
+    if (game.isSolved() && !hanoiScene.isAnimating())
+        hanoiScene.renderVictory(viewportWidth, viewportHeight);
+
     eng.swapBuffers();
     eng.postRedisplay();
 }
@@ -148,7 +151,7 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
     // Pick / drop disk
     case ' ':
     {
-        if (hanoiScene.isAnimating())
+        if (hanoiScene.isAnimating() || game.isSolved())
             break;
 
         // Pick
@@ -167,11 +170,6 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
                 // Move disk to target at the correct height
                 int destinationLevel = game.getRodSize(selectedRod) - 1;
                 hanoiScene.moveDisk(disk, selectedRod, destinationLevel);
-
-                if (game.isSolved())
-                {
-                    std::cout << "Tower of Hanoi solved!" << std::endl;
-                }
             }
             else
             {
@@ -245,7 +243,7 @@ void keyboardCallback(unsigned char key, int mouseX, int mouseY)
 
 void specialCallback(int key, int mouseX, int mouseY)
 {
-    if (hanoiScene.isAnimating())
+    if (hanoiScene.isAnimating() || game.isSolved())
         return;
 
     switch (key)
@@ -288,7 +286,7 @@ void resetHanoi()
 
 void undoHanoi()
 {
-    if (hanoiScene.isAnimating())
+    if (hanoiScene.isAnimating() || game.isSolved())
         return;
 
     if (sourceRod != -1)
@@ -309,7 +307,7 @@ void undoHanoi()
 
 void redoHanoi()
 {
-    if (hanoiScene.isAnimating())
+    if (hanoiScene.isAnimating() || game.isSolved())
         return;
 
     if (sourceRod != -1)
@@ -447,7 +445,7 @@ int main(int argc, char* argv[])
     }
 
     // Sun
-    !initSun();
+    initSun();
     
     // Initialize Hanoi game
     game.init();

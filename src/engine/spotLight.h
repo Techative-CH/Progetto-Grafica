@@ -1,3 +1,9 @@
+/**
+ * @file spotLight.h
+ * @brief Spotlight include file
+ *
+ * @author Samuel Banfi (C) SUPSI [samuel.banfi@supsi.ch]
+ */
 #pragma once
 
 #include "light.h"
